@@ -1,0 +1,137 @@
+// Base armor
+ACTOR ProArmor : BasicArmorPickup
+{
+	Radius 20
+	Height 16
+	Inventory.Icon "ARM3A0"
+	Inventory.PickupMessage "Picked up the armor."
+	Inventory.PickupSound "pickar"
+	Armor.SavePercent 66.667
+	Armor.SaveAmount 100
+	+INVENTORY.IGNORESKILL
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP	
+	States
+	{
+		Spawn:
+			ARM3 A 6
+			ARM3 B 7 Bright
+			Loop
+	}
+}
+
+// Red armor giver
+ACTOR RedGiver : CustomInventory 25025
+{
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP
+	Radius 20
+	Height 16
+	Inventory.PickupMessage "Picked up the red armor."
+	Inventory.PickupSound "pickar"
+	States
+	{
+		Spawn:
+			ARM4 A 6
+			ARM4 B 7 Bright
+			Loop
+
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Stack Armor", 0, 100)
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Item Taken", 0, 3)
+			Stop
+	}
+}
+
+// Red armor giver
+ACTOR BlueGiver : CustomInventory replaces BlueArmor 25032
+{
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP
+	Radius 20
+	Height 16
+	Inventory.PickupMessage "Picked up the yellow armor."
+	Inventory.PickupSound "pickar"
+	States
+	{
+		Spawn:
+			ARM3 A 6
+			ARM3 B 7 Bright
+			Loop
+
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Stack Armor", 0, 50)
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Item Taken", 0, 2)
+			Stop
+	}
+}
+
+// Yellow armor giver
+ACTOR GreenGiver : CustomInventory replaces GreenArmor 25031
+{
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP
+	Radius 20
+	Height 16
+	Inventory.PickupMessage "Picked up the yellow armor."
+	Inventory.PickupSound "pickar"
+	States
+	{
+		Spawn:
+			ARM3 A 6
+			ARM3 B 7 Bright
+			Loop
+
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Stack Armor", 0, 50)
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Item Taken", 0, 2)
+			Stop
+	}
+}
+
+// Yellow armor Giver
+ACTOR YellowGiver : CustomInventory 25024
+{
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP
+	Radius 20
+	Height 16
+	Inventory.PickupMessage "Picked up the red armor."
+	Inventory.PickupSound "pickar"
+	States
+	{
+		Spawn:
+			ARM4 A 6
+			ARM4 B 7 Bright
+			Loop
+
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Stack Armor", 0, 100)
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Item Taken", 0, 3)
+			Stop
+	}
+}
+
+// Armor Bonus 5
+ACTOR ArmorBonus5 : CustomInventory replaces ArmorBonus 25022
+{
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "Picked up armor bonus x 5."
+	Inventory.PickupSound "arm5"
+	+INVENTORY.IGNORESKILL
+	States
+	{
+		Spawn:
+			BNS2 ABCDCB 6
+			Loop
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Stack Armor", 0, 5)
+			Stop
+	}
+}

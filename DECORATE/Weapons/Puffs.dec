@@ -1,0 +1,51 @@
+// Base BulletPuff replacement
+ACTOR HBulletPuff : BulletPuff replaces BulletPuff
+{
+	+PUFFONACTORS
+    +PUFFGETSOWNER
+	+ALWAYSPUFF
+    States
+    {
+		Spawn:
+			TNT1 A 0
+			Stop
+		Death:
+			PUFF A 4 Bright
+			PUFF B 4	
+			PUFF CD 4
+			Stop
+		Melee:
+			TNT1 A 0
+			Stop
+		Crash:
+			PUFF A 4 Bright
+			PUFF B 4	
+			PUFF CD 4
+			Stop			
+        XDeath:
+            TNT1 A 1 ACS_NamedExecute("Hit Marker Sound", 0, 1, 0)
+            Stop
+    }
+}
+
+ACTOR MPuff : HBulletPuff
+{
+    States
+    {
+		Spawn:
+			TNT1 A 0
+			Stop
+		Death:
+			TNT1 A 0
+			Stop
+		Melee:
+			TNT1 A 0
+			Stop
+		Crash:
+			TNT1 A 0
+			Stop			
+        XDeath:
+            TNT1 A 1 ACS_NamedExecute("Hit Marker Sound", 0, 1, 0)
+            Stop
+	}
+}

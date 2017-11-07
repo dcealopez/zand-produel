@@ -1,0 +1,49 @@
+//=================================================================================
+//=================================================================================
+//
+//		Damage numbers
+//
+//=================================================================================
+//=================================================================================
+
+Sprite DN10A0, 104, 32 { Offset 64, 16	Patch Q4NH0H2,	72,0 { Style Translucent } }
+Sprite DN11A0, 104, 32 { Offset 64, 16	Patch Q4NH1H2,	72,0 { Style Translucent } }
+Sprite DN12A0, 104, 32 { Offset 64, 16	Patch Q4NH2H2,	72,0 { Style Translucent } }
+Sprite DN13A0, 104, 32 { Offset 64, 16	Patch Q4NH3H2,	72,0 { Style Translucent } }
+Sprite DN14A0, 104, 32 { Offset 64, 16	Patch Q4NH4H2,	72,0 { Style Translucent } }
+Sprite DN15A0, 104, 32 { Offset 64, 16	Patch Q4NH5H2,	72,0 { Style Translucent } }
+Sprite DN16A0, 104, 32 { Offset 64, 16	Patch Q4NH6H2,	72,0 { Style Translucent } }
+Sprite DN17A0, 104, 32 { Offset 64, 16	Patch Q4NH7H2,	72,0 { Style Translucent } }
+Sprite DN18A0, 104, 32 { Offset 64, 16	Patch Q4NH8H2,	72,0 { Style Translucent } }
+Sprite DN19A0, 104, 32 { Offset 64, 16	Patch Q4NH9H2,	72,0 { Style Translucent } }
+Sprite DN20A0, 104, 32 { Offset 64, 16	Patch Q4NH0H2,	48,0 { Style Translucent } }
+Sprite DN21A0, 104, 32 { Offset 64, 16	Patch Q4NH1H2,	48,0 { Style Translucent } }
+Sprite DN22A0, 104, 32 { Offset 64, 16	Patch Q4NH2H2,	48,0 { Style Translucent } }
+Sprite DN23A0, 104, 32 { Offset 64, 16	Patch Q4NH3H2,	48,0 { Style Translucent } }
+Sprite DN24A0, 104, 32 { Offset 64, 16	Patch Q4NH4H2,	48,0 { Style Translucent } }
+Sprite DN25A0, 104, 32 { Offset 64, 16	Patch Q4NH5H2,	48,0 { Style Translucent } }
+Sprite DN26A0, 104, 32 { Offset 64, 16	Patch Q4NH6H2,	48,0 { Style Translucent } }
+Sprite DN27A0, 104, 32 { Offset 64, 16	Patch Q4NH7H2,	48,0 { Style Translucent } }
+Sprite DN28A0, 104, 32 { Offset 64, 16	Patch Q4NH8H2,	48,0 { Style Translucent } }
+Sprite DN29A0, 104, 32 { Offset 64, 16	Patch Q4NH9H2,	48,0 { Style Translucent } }
+Sprite DN30A0, 104, 32 { Offset 64, 16	Patch Q4NH0H2,	24,0 { Style Translucent } }
+Sprite DN31A0, 104, 32 { Offset 64, 16	Patch Q4NH1H2,	24,0 { Style Translucent } }
+Sprite DN32A0, 104, 32 { Offset 64, 16	Patch Q4NH2H2,	24,0 { Style Translucent } }
+Sprite DN33A0, 104, 32 { Offset 64, 16	Patch Q4NH3H2,	24,0 { Style Translucent } }
+Sprite DN34A0, 104, 32 { Offset 64, 16	Patch Q4NH4H2,	24,0 { Style Translucent } }
+Sprite DN35A0, 104, 32 { Offset 64, 16	Patch Q4NH5H2,	24,0 { Style Translucent } }
+Sprite DN36A0, 104, 32 { Offset 64, 16	Patch Q4NH6H2,	24,0 { Style Translucent } }
+Sprite DN37A0, 104, 32 { Offset 64, 16	Patch Q4NH7H2,	24,0 { Style Translucent } }
+Sprite DN38A0, 104, 32 { Offset 64, 16	Patch Q4NH8H2,	24,0 { Style Translucent } }
+Sprite DN39A0, 104, 32 { Offset 64, 16	Patch Q4NH9H2,	24,0 { Style Translucent } }
+Sprite DN40A0, 104, 32 { Offset 64, 16	Patch Q4NH0H2,	 0,0 { Style Translucent } }
+Sprite DN41A0, 104, 32 { Offset 64, 16	Patch Q4NH1H2,	 0,0 { Style Translucent } }
+Sprite DN42A0, 104, 32 { Offset 64, 16	Patch Q4NH2H2,	 0,0 { Style Translucent } }
+Sprite DN43A0, 104, 32 { Offset 64, 16	Patch Q4NH3H2,	 0,0 { Style Translucent } }
+Sprite DN44A0, 104, 32 { Offset 64, 16	Patch Q4NH4H2,	 0,0 { Style Translucent } }
+Sprite DN45A0, 104, 32 { Offset 64, 16	Patch Q4NH5H2,	 0,0 { Style Translucent } }
+Sprite DN46A0, 104, 32 { Offset 64, 16	Patch Q4NH6H2,	 0,0 { Style Translucent } }
+Sprite DN47A0, 104, 32 { Offset 64, 16	Patch Q4NH7H2,	 0,0 { Style Translucent } }
+Sprite DN48A0, 104, 32 { Offset 64, 16	Patch Q4NH8H2,	 0,0 { Style Translucent } }
+Sprite DN49A0, 104, 32 { Offset 64, 16	Patch Q4NH9H2,	 0,0 { Style Translucent } }
+Sprite DNINA0, 71, 33 { Offset 35, 16	Patch Q4NINF2,	 0,0 { Style Translucent } }

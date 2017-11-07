@@ -1,0 +1,22 @@
+// Pro Duel DECORATE Definitions
+
+#include "DECORATE/Weapons/Puffs.dec"
+#include "DECORATE/Weapons/Fist.dec"
+#include "DECORATE/Weapons/Chainsaw.dec"
+#include "DECORATE/Weapons/Pistol.dec"
+#include "DECORATE/Weapons/Shotgun.dec"
+#include "DECORATE/Weapons/SuperShotgun.dec"
+#include "DECORATE/Weapons/Chaingun.dec"
+#include "DECORATE/Weapons/PlasmaRifle.dec"
+#include "DECORATE/Weapons/RocketLauncher.dec"
+#include "DECORATE/Weapons/GrenadeLauncher.dec"
+#include "DECORATE/Weapons/LightningGun.dec"
+#include "DECORATE/Weapons/Railgun.dec"
+#include "DECORATE/Weapons/BFG9000.dec"
+#include "DECORATE/DoomPlayer.dec"
+#include "DECORATE/Health.dec"
+#include "DECORATE/Armors.dec"
+#include "DECORATE/DamageNumbers.dec"
+ 
+
+ 

@@ -1,0 +1,240 @@
+//=============================================================================
+//
+// Damage numbers consist of up to 4 actors located at the exact same spot.
+// Each actor represents a number in position. This allow us to cover damage
+// values from 1 to 9999.
+//
+// First digit is severity: 1 to 4. 
+//      1 is for wimpy rapid-fire weapons,
+//      2 is for noticeable hits,
+//      3 is for life-threatening damage,
+//      4 is for killing blows that are survivable by miracle alone 
+//
+// Second digit is position: 1 to 4.
+//      1 for ones
+//      2 for tens
+//      3 for hundreds
+//      4 for thousands
+//
+// Third digit is actual digit: 0 to 9.
+//
+//=============================================================================
+
+Actor DamageNumber1
+{
+	+NOINTERACTION
+	+BRIGHT
+	+CLIENTSIDEONLY
+	+FORCEXYBILLBOARD
+	VSpeed 1
+	Speed 1
+	ReactionTime 2
+	Scale .3
+	States
+	{
+		Spawn:
+			TNT1 A 0
+		Idle:
+			"####" "#" 0 A_ChangeVelocity(1,0,0,CVF_RELATIVE)
+			"####" "#" 35 A_Countdown
+			Wait
+		Death:
+			"####" "#" 0 A_ChangeVelocity(0,0,1)
+			"####" "#################" 1 A_FadeOut(0.0625)
+			Stop
+	}
+}
+
+Actor DamageNumber110 : DamageNumber1 { States { Spawn: DN10 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber111 : DamageNumber1 { States { Spawn: DN11 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber112 : DamageNumber1 { States { Spawn: DN12 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber113 : DamageNumber1 { States { Spawn: DN13 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber114 : DamageNumber1 { States { Spawn: DN14 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber115 : DamageNumber1 { States { Spawn: DN15 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber116 : DamageNumber1 { States { Spawn: DN16 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber117 : DamageNumber1 { States { Spawn: DN17 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber118 : DamageNumber1 { States { Spawn: DN18 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber119 : DamageNumber1 { States { Spawn: DN19 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber120 : DamageNumber1 { States { Spawn: DN20 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber121 : DamageNumber1 { States { Spawn: DN21 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber122 : DamageNumber1 { States { Spawn: DN22 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber123 : DamageNumber1 { States { Spawn: DN23 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber124 : DamageNumber1 { States { Spawn: DN24 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber125 : DamageNumber1 { States { Spawn: DN25 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber126 : DamageNumber1 { States { Spawn: DN26 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber127 : DamageNumber1 { States { Spawn: DN27 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber128 : DamageNumber1 { States { Spawn: DN28 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber129 : DamageNumber1 { States { Spawn: DN29 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber130 : DamageNumber1 { States { Spawn: DN30 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber131 : DamageNumber1 { States { Spawn: DN31 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber132 : DamageNumber1 { States { Spawn: DN32 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber133 : DamageNumber1 { States { Spawn: DN33 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber134 : DamageNumber1 { States { Spawn: DN34 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber135 : DamageNumber1 { States { Spawn: DN35 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber136 : DamageNumber1 { States { Spawn: DN36 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber137 : DamageNumber1 { States { Spawn: DN37 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber138 : DamageNumber1 { States { Spawn: DN38 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber139 : DamageNumber1 { States { Spawn: DN39 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber140 : DamageNumber1 { States { Spawn: DN40 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber141 : DamageNumber1 { States { Spawn: DN41 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber142 : DamageNumber1 { States { Spawn: DN42 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber143 : DamageNumber1 { States { Spawn: DN43 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber144 : DamageNumber1 { States { Spawn: DN44 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber145 : DamageNumber1 { States { Spawn: DN45 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber146 : DamageNumber1 { States { Spawn: DN46 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber147 : DamageNumber1 { States { Spawn: DN47 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber148 : DamageNumber1 { States { Spawn: DN48 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber149 : DamageNumber1 { States { Spawn: DN49 A 0 A_Turn(0) Goto Super::Idle } }
+
+Actor DamageNumber2 : DamageNumber1
+{
+	ReactionTime 2
+	Scale .5
+}
+
+Actor DamageNumber210 : DamageNumber2 { States { Spawn: DN10 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber211 : DamageNumber2 { States { Spawn: DN11 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber212 : DamageNumber2 { States { Spawn: DN12 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber213 : DamageNumber2 { States { Spawn: DN13 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber214 : DamageNumber2 { States { Spawn: DN14 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber215 : DamageNumber2 { States { Spawn: DN15 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber216 : DamageNumber2 { States { Spawn: DN16 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber217 : DamageNumber2 { States { Spawn: DN17 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber218 : DamageNumber2 { States { Spawn: DN18 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber219 : DamageNumber2 { States { Spawn: DN19 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber220 : DamageNumber2 { States { Spawn: DN20 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber221 : DamageNumber2 { States { Spawn: DN21 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber222 : DamageNumber2 { States { Spawn: DN22 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber223 : DamageNumber2 { States { Spawn: DN23 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber224 : DamageNumber2 { States { Spawn: DN24 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber225 : DamageNumber2 { States { Spawn: DN25 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber226 : DamageNumber2 { States { Spawn: DN26 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber227 : DamageNumber2 { States { Spawn: DN27 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber228 : DamageNumber2 { States { Spawn: DN28 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber229 : DamageNumber2 { States { Spawn: DN29 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber230 : DamageNumber2 { States { Spawn: DN30 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber231 : DamageNumber2 { States { Spawn: DN31 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber232 : DamageNumber2 { States { Spawn: DN32 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber233 : DamageNumber2 { States { Spawn: DN33 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber234 : DamageNumber2 { States { Spawn: DN34 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber235 : DamageNumber2 { States { Spawn: DN35 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber236 : DamageNumber2 { States { Spawn: DN36 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber237 : DamageNumber2 { States { Spawn: DN37 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber238 : DamageNumber2 { States { Spawn: DN38 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber239 : DamageNumber2 { States { Spawn: DN39 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber240 : DamageNumber2 { States { Spawn: DN40 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber241 : DamageNumber2 { States { Spawn: DN41 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber242 : DamageNumber2 { States { Spawn: DN42 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber243 : DamageNumber2 { States { Spawn: DN43 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber244 : DamageNumber2 { States { Spawn: DN44 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber245 : DamageNumber2 { States { Spawn: DN45 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber246 : DamageNumber2 { States { Spawn: DN46 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber247 : DamageNumber2 { States { Spawn: DN47 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber248 : DamageNumber2 { States { Spawn: DN48 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber249 : DamageNumber2 { States { Spawn: DN49 A 0 A_Turn(0) Goto Super::Idle } }
+
+Actor DamageNumber3 : DamageNumber1
+{
+	ReactionTime 3
+	Scale .7
+}
+
+Actor DamageNumber310 : DamageNumber3 { States { Spawn: DN10 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber311 : DamageNumber3 { States { Spawn: DN11 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber312 : DamageNumber3 { States { Spawn: DN12 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber313 : DamageNumber3 { States { Spawn: DN13 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber314 : DamageNumber3 { States { Spawn: DN14 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber315 : DamageNumber3 { States { Spawn: DN15 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber316 : DamageNumber3 { States { Spawn: DN16 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber317 : DamageNumber3 { States { Spawn: DN17 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber318 : DamageNumber3 { States { Spawn: DN18 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber319 : DamageNumber3 { States { Spawn: DN19 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber320 : DamageNumber3 { States { Spawn: DN20 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber321 : DamageNumber3 { States { Spawn: DN21 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber322 : DamageNumber3 { States { Spawn: DN22 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber323 : DamageNumber3 { States { Spawn: DN23 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber324 : DamageNumber3 { States { Spawn: DN24 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber325 : DamageNumber3 { States { Spawn: DN25 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber326 : DamageNumber3 { States { Spawn: DN26 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber327 : DamageNumber3 { States { Spawn: DN27 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber328 : DamageNumber3 { States { Spawn: DN28 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber329 : DamageNumber3 { States { Spawn: DN29 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber330 : DamageNumber3 { States { Spawn: DN30 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber331 : DamageNumber3 { States { Spawn: DN31 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber332 : DamageNumber3 { States { Spawn: DN32 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber333 : DamageNumber3 { States { Spawn: DN33 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber334 : DamageNumber3 { States { Spawn: DN34 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber335 : DamageNumber3 { States { Spawn: DN35 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber336 : DamageNumber3 { States { Spawn: DN36 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber337 : DamageNumber3 { States { Spawn: DN37 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber338 : DamageNumber3 { States { Spawn: DN38 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber339 : DamageNumber3 { States { Spawn: DN39 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber340 : DamageNumber3 { States { Spawn: DN40 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber341 : DamageNumber3 { States { Spawn: DN41 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber342 : DamageNumber3 { States { Spawn: DN42 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber343 : DamageNumber3 { States { Spawn: DN43 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber344 : DamageNumber3 { States { Spawn: DN44 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber345 : DamageNumber3 { States { Spawn: DN45 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber346 : DamageNumber3 { States { Spawn: DN46 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber347 : DamageNumber3 { States { Spawn: DN47 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber348 : DamageNumber3 { States { Spawn: DN48 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber349 : DamageNumber3 { States { Spawn: DN49 A 0 A_Turn(0) Goto Super::Idle } }
+
+Actor DamageNumber4 : DamageNumber1
+{
+	ReactionTime 4
+	Scale 1
+}
+
+Actor DamageNumber410 : DamageNumber4 { States { Spawn: DN10 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber411 : DamageNumber4 { States { Spawn: DN11 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber412 : DamageNumber4 { States { Spawn: DN12 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber413 : DamageNumber4 { States { Spawn: DN13 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber414 : DamageNumber4 { States { Spawn: DN14 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber415 : DamageNumber4 { States { Spawn: DN15 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber416 : DamageNumber4 { States { Spawn: DN16 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber417 : DamageNumber4 { States { Spawn: DN17 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber418 : DamageNumber4 { States { Spawn: DN18 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber419 : DamageNumber4 { States { Spawn: DN19 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber420 : DamageNumber4 { States { Spawn: DN20 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber421 : DamageNumber4 { States { Spawn: DN21 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber422 : DamageNumber4 { States { Spawn: DN22 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber423 : DamageNumber4 { States { Spawn: DN23 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber424 : DamageNumber4 { States { Spawn: DN24 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber425 : DamageNumber4 { States { Spawn: DN25 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber426 : DamageNumber4 { States { Spawn: DN26 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber427 : DamageNumber4 { States { Spawn: DN27 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber428 : DamageNumber4 { States { Spawn: DN28 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber429 : DamageNumber4 { States { Spawn: DN29 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber430 : DamageNumber4 { States { Spawn: DN30 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber431 : DamageNumber4 { States { Spawn: DN31 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber432 : DamageNumber4 { States { Spawn: DN32 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber433 : DamageNumber4 { States { Spawn: DN33 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber434 : DamageNumber4 { States { Spawn: DN34 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber435 : DamageNumber4 { States { Spawn: DN35 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber436 : DamageNumber4 { States { Spawn: DN36 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber437 : DamageNumber4 { States { Spawn: DN37 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber438 : DamageNumber4 { States { Spawn: DN38 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber439 : DamageNumber4 { States { Spawn: DN39 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber440 : DamageNumber4 { States { Spawn: DN40 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber441 : DamageNumber4 { States { Spawn: DN41 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber442 : DamageNumber4 { States { Spawn: DN42 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber443 : DamageNumber4 { States { Spawn: DN43 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber444 : DamageNumber4 { States { Spawn: DN44 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber445 : DamageNumber4 { States { Spawn: DN45 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber446 : DamageNumber4 { States { Spawn: DN46 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber447 : DamageNumber4 { States { Spawn: DN47 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber448 : DamageNumber4 { States { Spawn: DN48 A 0 A_Turn(0) Goto Super::Idle } }
+Actor DamageNumber449 : DamageNumber4 { States { Spawn: DN49 A 0 A_Turn(0) Goto Super::Idle } }
+
+Actor DamageNumberInf : DamageNumber1 
+{ 
+	ReactionTime 5
+	Scale 1
+	States 
+	{ 
+		Spawn: 
+			DNIN A 0 Nodelay A_ChangeVelocity(-1,0,-.5,CVF_RELATIVE) // stays in place
+			Goto Super::Idle 
+	} 
+}

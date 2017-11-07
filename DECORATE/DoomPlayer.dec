@@ -1,0 +1,67 @@
+// Base Doom Player class replacement
+ACTOR DoomerE : DoomPlayer Replaces DoomPlayer
+{
+	Player.StartItem "PistolE"
+	Player.StartItem "SwitchWaitGiver"
+	Player.StartItem "FistE"
+	Player.WeaponSlot 2, "PistolE"
+	Player.StartItem "Clip", 50
+	Player.WeaponSlot 0, GrenadeLE
+	Player.WeaponSlot 1, FistE, ChainsawE
+	Player.WeaponSlot 2, PistolE
+	Player.WeaponSlot 3, ShotgunE, SuperShotgunE
+	Player.WeaponSlot 4, ChaingunE
+	Player.WeaponSlot 5, RocketLauncherE
+	Player.WeaponSlot 6, PlasmaRifleE
+	Player.WeaponSlot 7, BFGE
+	Player.WeaponSlot 8, LGunE
+	Player.WeaponSlot 9, Railgun	
+	DamageFactor "Knockout", 5.0
+	DamageFactor "RocketJump", 0.0
+	DamageFactor "PlasmaJump", 0.25
+	Obituary "%k \cc> \ciBFG \cc> %o"
+	States
+	{
+		Death:
+			TNT1 A 0 A_StopSound(6)
+			PLAY H 0 A_PlayerSkinCheck("AltSkinDeath")
+			Goto Death1
+		XDeath:
+			TNT1 A 0 A_StopSound(6)
+			PLAY O 0 A_PlayerSkinCheck("AltSkinXDeath")
+			Goto XDeath1
+		Death1:
+			PLAY H 10
+			PLAY I 10 A_PlayerScream
+			PLAY J 10 A_NoBlocking
+			PLAY KLM 10
+		Death1Fade:
+			PLAY N 4 A_FadeOut
+			Loop		
+		XDeath1:
+			PLAY O 5
+			PLAY P 5 A_XScream
+			PLAY Q 5 A_NoBlocking
+			PLAY RSTUV 5
+		XDeath1Fade:
+			PLAY W 4 A_FadeOut
+			Loop
+		AltSkinDeath:
+			PLAY H 6
+			PLAY I 6 A_PlayerScream
+			PLAY JK 6
+			PLAY L 6 A_NoBlocking
+			PLAY MNO 6			
+		AltSkinDeathFade:
+			PLAY P 4 A_FadeOut
+			Loop
+		AltSkinXDeath:
+			PLAY Q 5 A_PlayerScream
+			PLAY R 0 A_NoBlocking
+			PLAY R 5 A_SkullPop
+			PLAY STUVWX 5
+		AltSkinXDeathFade:
+			PLAY Y 4 A_FadeOut
+			Loop		
+	}
+}

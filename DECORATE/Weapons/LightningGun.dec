@@ -1,0 +1,160 @@
+// Lightning Gun
+ACTOR LGunE : DoomWeapon 25017
+{
+	SpawnID 155
+	Height 25
+	Radius 20
+	+Weapon.NOAUTOAIM
+	Weapon.SlotNumber 8
+	Weapon.SlotPriority 0
+	Weapon.SelectionOrder 500
+	Weapon.AmmoType "LightningAmmo"
+	Weapon.AmmoGive 50
+	Weapon.AmmoUse 1
+	Weapon.Kickback 100
+	Inventory.PickupMessage "You got the lightning gun!"
+	Tag "Lightning Gun"
+	-DROPPED
+	Inventory.RespawnTics 125
+	Obituary "%k \cc> \ciLightning Gun \cc> %o"
+	States
+	{
+		Ready:
+			LGUN A 0 A_StopSound(6)
+			LGUN A 0 A_PlaySound("lgidle", 6, 0.07, 1, 1.15)
+			Goto ReadyLoop
+			
+		ReadyLoop:
+			LGUN A 1 A_WeaponReady
+			Loop
+
+		Deselect:
+			LGUN A 0 A_Light0
+			LGUN A 0 A_StopSound(6)
+			LGUN A 0 A_Lower
+			LGUN A 0 A_Lower
+			LGUN A 1 A_Lower
+			Loop
+
+		Select:
+			LGUN A 0 A_StopSound(7)
+			LGUN A 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			
+		SelectLoop:
+			LGUN A 0 A_StopSound(6)
+			LGUN A 0 A_Raise
+			LGUN A 0 A_Raise
+			LGUN A 1 A_Raise
+			Loop	 
+
+		Fire:	  
+			LGUN A 1 Bright A_GunFlash
+			LGUN A 0 A_PlaySound("lgshoot", 6, 1.0, 1)
+			LGUN A 0 A_PlaySound("lgthund", CHAN_WEAPON)
+			Goto Hold
+
+		Hold:
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Weapon Shot", 0, 7)
+			LGUN B 1 Bright A_Light1
+			LGUN C 1 Bright A_RailAttack(9, 0, 1, None, "White", RGF_SILENT | RGF_NOPIERCING | RGF_FULLBRIGHT, 0, "LGPuff", 0, 0, 608, 1, 50, 1.0, "LGTRAILEFFECT")
+			LGUN C 1 Bright A_ReFire
+			LGUN D 3 A_GunFlash
+			LGUN B 0 A_StopSound(6)
+			Goto Ready
+
+		Spawn:
+			LGGN A -1
+			Stop
+
+		Flash:
+			TNT1 A 1 Bright A_Light1
+			Goto LightDone
+	}
+}
+
+// Dropped Grenade Launcher
+ACTOR DLGunE : CustomInventory
+{
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "You got the lightning gun!"
+	Inventory.PickupSound "misc/w_pkup"
+	States
+	{
+		Spawn:
+			LGGN A 175
+		SpawnLoop:		
+			LGGN A 7 A_FadeOut
+			Loop
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_GiveInventory("LGunE")
+			Stop
+	}
+}
+
+// Lightning Ammo
+ACTOR LightningAmmo : Ammo 25018
+{
+	Height 25
+	Radius 20
+	Inventory.PickupMessage "Picked up a bolt charge."
+	Inventory.Amount 50
+	Inventory.MaxAmount 200
+	Inventory.Icon "BOLTA0"
+	Ammo.BackpackAmount 50
+	Ammo.BackpackMaxAmount 600
+	States
+	{
+		Spawn:
+			BOLT B -1
+			Stop
+	}
+}
+
+// LG Trail Effect
+ACTOR LGTRAILEFFECT
+{
+	+CLIENTSIDEONLY
+	+NOINTERACTION
+	+FORCEXYBILLBOARD
+	RenderStyle Add
+	Alpha 0.7
+	Scale 0.7
+	Translation "0:255=%[0,0,0]:[0.8,1.2,1.6]"
+	States
+	{
+		Spawn:			
+			LGWR Z 3 Bright
+			Stop
+	}
+}
+
+// LG Puff
+ACTOR LGPuff : BulletPuff
+{
+	+PUFFONACTORS
+    +PUFFGETSOWNER
+	+ALWAYSPUFF
+    RenderStyle Add
+	Alpha 0.7
+	Scale 0.7
+	Translation "0:255=%[0,0,0]:[0.8,1.2,1.6]"
+    States
+    {
+		Spawn:
+			TNT1 A 0
+			Stop
+		Death:
+			LGPF A 4 Bright
+			Stop
+		Melee:
+			TNT1 A 0
+			Stop
+		Crash:
+			LGPF A 4 Bright
+			Stop			
+        XDeath:
+            TNT1 A 1 ACS_NamedExecute("Hit Marker Sound", 0, 1, 0)
+            Stop
+    }
+}

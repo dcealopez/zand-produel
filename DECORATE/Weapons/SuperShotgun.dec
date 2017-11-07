@@ -1,0 +1,79 @@
+// SuperShotgun
+ACTOR SuperShotgunE : SuperShotgun Replaces SuperShotgun
+{
+	Decal BulletChip
+	Weapon.SlotNumber 3
+	Obituary "%k \cc> \ciSuper Shotgun \cc> %o"
+	-DROPPED
+	Inventory.RespawnTics 125
+	States
+	{
+		Deselect:
+			SHT2 A 0 A_Lower
+			SHT2 A 0 A_Lower
+			SHT2 A 1 A_Lower
+			Loop
+
+		Select:
+			SHT2 A 0 A_StopSound(7)
+			SHT2 A 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			
+		SelectLoop:
+			SHT2 A 0 A_Raise
+			SHT2 A 0 A_Raise
+			SHT2 A 1 A_Raise
+			Loop
+
+		Fire:
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Weapon Shot", 0, 4)
+			SHT2 A 3
+			SHT2 A 0 A_FireBullets (9.0, 6.0, 18, (8), "BulletPuff", FBF_USEAMMO | FBF_NORANDOM)
+			SHT2 A 0 A_PlaySound ("weapons/sshotf", CHAN_WEAPON)
+			SHT2 A 7 A_GunFlash
+			SHT2 B 7
+			SHT2 C 7 A_CheckReload
+			SHT2 D 7 A_OpenShotgun2
+			SHT2 E 7
+			SHT2 F 7 A_LoadShotgun2
+			SHT2 G 6
+			SHT2 H 6 A_CloseShotgun2
+			SHT2 A 5 A_ReFire
+			Goto Ready
+
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			SGN2 A 10
+			Loop
+
+		Rotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("End_Rotate")
+			RTSS A 3 A_SetAngle(angle + 22.5)
+			Loop
+
+		NoRotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			SGN2 A 3
+			Loop
+	}
+}
+
+// Dropped Super Shotgun
+ACTOR DSuperShotgunE : CustomInventory
+{
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "$GOTSHOTGUN2"
+	Inventory.PickupSound "misc/w_pkup"
+	States
+	{
+		Spawn:
+			SGN2 A 175
+		SpawnLoop:		
+			SGN2 A 7 A_FadeOut
+			Loop
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_GiveInventory("SuperShotgunE")
+			Stop
+	}
+}

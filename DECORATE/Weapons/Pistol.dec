@@ -1,0 +1,38 @@
+// Pistol
+ACTOR PistolE : Pistol
+{
+	AttackSound "weapons/pistol"
+	Decal BulletChip
+	Weapon.SlotNumber 2
+	Weapon.AmmoUse 1
+	-DROPPED
+	Inventory.RespawnTics 125
+	Obituary "%k \cc> \ciPistol \cc> %o"
+	States
+	{
+		Deselect:
+			PISG A 0 A_Lower
+			PISG A 0 A_Lower
+			PISG A 1 A_Lower
+			Loop
+
+		Select:
+			PISG A 0 A_StopSound(7)
+			PISG A 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			
+		SelectLoop:
+			PISG A 0 A_Raise
+			PISG A 0 A_Raise
+			PISG A 1 A_Raise
+			Loop
+
+		Fire:
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Weapon Shot", 0, 2)
+			PISG A 1
+			PISG A 0 A_GunFlash
+			PISG B 5 A_FireBullets (0, 0, 1, (10), "BulletPuff", FBF_USEAMMO | FBF_NORANDOM)
+			PISG C 3
+			PISG D 2 A_ReFire
+			Goto Ready
+	}
+}

@@ -1,0 +1,23 @@
+#library "eon"
+#include "zcommon.acs"
+
+// Rotating Weapons
+SCRIPT "Begin_Rotate" (void) CLIENTSIDE
+{
+	if(GetCvar("pro_rotatingweapons"))
+	{
+		SetActorState(0, "Rotate");
+	}
+	else
+	{
+		SetActorState(0, "NoRotate");
+	}
+}
+
+SCRIPT "End_Rotate" (void) CLIENTSIDE
+{
+	if(!GetCvar("pro_rotatingweapons"))
+	{
+		SetActorState(0, "NoRotate");
+	}
+}

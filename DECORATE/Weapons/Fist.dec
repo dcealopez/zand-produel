@@ -1,0 +1,46 @@
+// Fist
+ACTOR FistE : Fist Replaces Fist
+{
+	Weapon.Kickback 50
+	Weapon.SlotNumber 1
+	Obituary "%k \cc> \ciFist \cc> %o"
+	States
+	{
+		Deselect:	  
+			PUNG A 0 A_Lower
+			PUNG A 0 A_Lower
+			PUNG A 1 A_Lower
+			Loop
+
+		Select:	  
+			PUNG A 0 A_StopSound(7)
+			PUNG A 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			SelectLoop:
+			PUNG A 0 A_Raise
+			PUNG A 0 A_Raise
+			PUNG A 1 A_Raise
+			Loop
+
+		Fire:
+			PUNG B 2	  
+			TNT1 A 0 A_JumpIfInventory("PowerStrength", 1, "Berserk")
+			PUNG C 2 A_CustomPunch(random(1,10) * 2, TRUE, 0, "FistPuff")
+			PUNG D 3
+			PUNG C 3
+			PUNG B 3 A_ReFire
+			Goto Ready
+
+		Berserk:
+			PUNG C 2 A_CustomPunch(random(1,10) * 20, TRUE)
+			PUNG D 3
+			PUNG C 3
+			PUNG B 3 A_ReFire
+			Goto Ready
+	}
+}
+
+// Fist Puff
+ACTOR FistPuff : MPuff
+{
+	DamageType "Knockout"
+}

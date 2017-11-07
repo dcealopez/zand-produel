@@ -1,0 +1,110 @@
+monospacefonts true, "0";
+
+StatusBar Normal, forcescaled
+{
+	// Health
+	DrawImage "MEDIA0", 37, 197, centerbottom;
+	DrawNumber 3, HUDFONT_DOOM, Green, Health, DrawShadow, 100, 180;
+	
+	// Armor
+	DrawImage armoricon, 280, 197, centerbottom;
+	DrawNumber 3, HUDFONT_DOOM, Yellow, Armor, DrawShadow, 257, 180;
+	
+	// Ammo
+	DrawImage ammoicon1, 165, 180, centerbottom;
+	DrawNumber 3, SMALLFONT, Orange, Ammo1, DrawShadow, 172, 185;
+	
+	// Timer
+	DrawString BIGFONT, White, time, 114, 10, 0, alignment(center);
+	
+	// Other ammo
+	DrawImage CLIP, 337, 107, centerbottom, 7, 7, forcescale;
+	DrawNumber 3, SMALLFONT, White, ammo(Clip), DrawShadow, 370, 100;
+	
+	DrawImage "SHELA0", 337, 115, centerbottom, 7, 7, forcescale;
+	DrawNumber 3, SMALLFONT, Orange, ammo(Shell), DrawShadow, 370, 110;
+	
+	DrawImage CELL, 337, 126, centerbottom, 7, 7, forcescale;
+	DrawNumber 3, SMALLFONT, Blue, ammo(Cell), DrawShadow, 370, 120;
+	
+	DrawImage "ROCKA0", 337, 137, centerbottom, 7, 7, forcescale;
+	DrawNumber 3, SMALLFONT, Red, ammo(RocketAmmo), DrawShadow, 370, 130;
+	
+	DrawImage "GRENA0", 337, 147, centerbottom, 7, 7, forcescale;
+	DrawNumber 3, SMALLFONT, Gray, ammo(GrenadeAmmo), DrawShadow, 370, 140;
+	
+	DrawImage "BOLTA0", 337, 158, centerbottom, 7, 7, forcescale;
+	DrawNumber 3, SMALLFONT, Yellow, ammo(LightningAmmo), DrawShadow, 370, 150;
+	
+	DrawImage "RAILA0", 337, 167, centerbottom, 7, 7, forcescale;
+	DrawNumber 3, SMALLFONT, Green, ammo(RailAmmo), DrawShadow, 370, 160;
+	
+	DrawImage "BFUGA0", 337, 176, centerbottom, 10, 10, forcescale;
+	DrawNumber 3, SMALLFONT, DarkGreen, ammo(BFGCELLPRO), DrawShadow, 370, 170;
+	
+	// Frags
+	drawnumber 2, SMALLFONT, untranslated, frags, drawshadow, -20, 150;
+}
+
+statusbar fullscreen, fullscreenoffsets // ZDoom HUD
+{
+	//health
+	drawimage "MEDIA0", 20, -2, centerbottom;
+	drawnumber 2147483647, HUDFONT_DOOM, untranslated, health, drawshadow, 82, -20;
+
+	//armor
+	drawimage armoricon, 20, -24, centerbottom;
+	drawnumber 2147483647, HUDFONT_DOOM, untranslated, armor, drawshadow, whennotzero, 82, -39;
+
+	//ammo
+	drawimage ammoicon1, -14, -4, centerbottom;
+	drawnumber 2147483647, HUDFONT_DOOM, untranslated, ammo1, drawshadow, -25, -20;
+
+	usesammo
+	{
+		//secondary ammo and inventory
+		usessecondaryammo
+		{
+			drawimage ammoicon2, -14, -22, centerbottom;
+			drawnumber 2147483647, HUDFONT_DOOM, untranslated, ammo2, drawshadow, -25, -38;
+			inventorybarnotvisible
+			{
+				drawselectedinventory centerbottom, drawshadow, alwaysshowcounter, HUDFONT_DOOM, -14, -39, -26, -56, untranslated;
+			}
+		}
+		else //no secondary ammo
+		{
+			inventorybarnotvisible
+			{
+				drawselectedinventory centerbottom, drawshadow, alwaysshowcounter, HUDFONT_DOOM, -14, -21, -26, -38, untranslated;
+			}
+		}
+	}
+	else // no ammo but inventory
+	{
+		inventorybarnotvisible
+		{
+			drawselectedinventory centerbottom, drawshadow, alwaysshowcounter, HUDFONT_DOOM, -14, -3, -26, -20, untranslated;
+		}
+	}
+
+	gamemode deathmatch
+	{
+		drawnumber 2147483647, HUDFONT_DOOM, untranslated, frags, drawshadow, -3, 1;
+	}
+	else
+	{
+		// let's hope no mod ever uses 100 keys...
+		drawkeybar 100, vertical, reverserows, auto, -10, 2, 0, 3, auto;
+	}
+}
+
+statusbar inventory // Standard bar overlay (ZDoom Addition)
+{
+	drawinventorybar Doom, 7, INDEXFONT, 50, 170;
+}
+
+statusbar inventoryfullscreen, fullscreenoffsets // ZDoom HUD overlay.
+{
+	drawinventorybar Doom, translucent, 7, INDEXFONT, -106+center, -31;
+}

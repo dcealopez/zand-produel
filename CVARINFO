@@ -1,0 +1,8 @@
+// Server settings
+server bool pro_dropweapons = true;
+
+// User settings
+user bool pro_rotatingweapons = true;
+user bool pro_damagenumbers = true;
+user bool pro_hitsounds = true;
+user string pro_authkey = "pro";

@@ -1,0 +1,1844 @@
+#library "hitsnd"
+#include "zcommon.acs"
+
+// For the stats system
+#define WEAPON_FIST					0
+#define WEAPON_CHAINSAW				1
+#define WEAPON_PISTOL 				2
+#define WEAPON_SHOTGUN 				3
+#define WEAPON_SSG 					4
+#define WEAPON_CHAINGUN 			5
+#define WEAPON_PLASMA 				6
+#define WEAPON_LG 					7
+#define WEAPON_RAILGUN 				8
+#define WEAPON_RL 					9
+#define WEAPON_GL 					10
+#define WEAPON_BFG					11
+#define WEAPON_OTHER				12
+#define MAX_WEAPONS 				13
+
+#define ITEM_GREENARMOR				0
+#define ITEM_BLUEARMOR				1
+#define ITEM_YELLOWARMOR			2
+#define ITEM_REDARMOR				3
+#define ITEM_SOULSPHERE				4
+#define MAX_ITEMS					5
+
+#define AUTH_KEY_LENGTH				61
+
+// HP tracker
+int hp[64][2];
+int playerSuicides[64][2];
+
+// Tracks if damage was dealt
+bool dmgDealt;
+
+// Duel stats system stuff
+bool playerLoggedIn[64];
+str playerAuthKey[64] = {"", "", "", "", "", "", "", "", "", "",
+						"", "", "", "", "", "", "", "", "", "",
+						"", "", "", "", "", "", "", "", "", "",
+						"", "", "", "", "", "", "", "", "", "",
+						"", "", "", "", "", "", "", "", "", "",
+						"", "", "", "", "", "", "", "", "", "",
+						"", "", "", ""};
+
+// Indicates if the previous duel round is over
+bool roundOver = false;
+
+// For stats purposes
+int duelPlayerNumber[2] = {-1, -1};
+int fragCount[2];
+int weaponKillCount[2][MAX_WEAPONS];
+int killCount[2];
+int deathCount[2];
+int weaponDamageDealt[2][MAX_WEAPONS];
+int lastWeaponPlayerDamaged[2] = {-1, -1};
+int shotsFired[2][MAX_WEAPONS];
+int hitsOnTarget[2][MAX_WEAPONS];
+int itemsTaken[2][MAX_ITEMS];
+int ticsDuelStart;
+int ticsDuelEnd;
+
+SCRIPT "Hit Player Enter" ENTER
+{
+	if(roundOver)
+	{
+		SetPlayerProperty (0, 1, PROP_TOTALLYFROZEN);
+	}
+	
+	Thing_ChangeTID(0, PlayerNumber() + 1000);
+	ACS_NamedExecuteAlways("Main Hit Marker Loop", 0);
+	ACS_NamedExecuteAlways("DisplayLeaderboards", 0, PlayerNumber(), 0);
+}
+
+SCRIPT "Hit Player Respawn" RESPAWN
+{
+	if(roundOver)
+	{
+		SetPlayerProperty (0, 1, PROP_TOTALLYFROZEN);
+	}
+	
+	Thing_ChangeTID(0, PlayerNumber() + 1000);
+	ACS_NamedExecuteAlways("Main Hit Marker Loop", 0);
+}
+
+SCRIPT "Get Player Weapon ID" (int pNumber)
+{
+	SetActivator(pNumber + 1000);
+	
+	str className = GetWeapon();
+	
+	SetResultValue(getWeaponIdByClassName(className));
+}
+
+SCRIPT "Main Hit Marker Loop" (void)
+{
+	int ticsPassed = 0;
+	
+	do
+	{
+		ticsPassed++;
+		
+		delay(1);
+		
+		if(ticsPassed >= 35)
+		{
+			if(CheckInventory("Armor") > 100)
+			{
+				TakeInventory("Armor", 1);
+			}
+			
+			if(GetActorProperty(0, APROP_Health) > 100)
+			{
+				SetActorProperty(0, APROP_Health, GetActorProperty(0, APROP_Health) - 1);
+			}
+			
+			ticsPassed = 0;
+		}
+		
+		int pNum = PlayerNumber();
+		
+	    hp[pNum][0] = hp[pNum][1];
+	    hp[pNum][1] = GetActorProperty(0, APROP_Health);
+		
+		playerSuicides[pNum][0] = playerSuicides[pNum][1];
+		playerSuicides[pNum][1] = getPlayerSuicideCount(pNum);
+		
+		int diff = hp[pNum][0] - hp[pNum][1];	
+		bool didSuicide = playerSuicides[pNum][1] > playerSuicides[pNum][0];
+	
+		// Register weapon kills regardless if damage dealt was registered
+		if(GetActorProperty(0, APROP_Health) <= 0 && !didSuicide)
+		{
+			if(duelPlayerNumber[0] == PlayerNumber())
+			{		
+				if(lastWeaponPlayerDamaged[1] == -1)
+				{
+					// Trust the weapon the player is holding
+					weaponKillCount[1][ACS_NamedExecuteWithResult("Get Player Weapon ID", duelPlayerNumber[1])]++;
+				}
+				else
+				{
+					weaponKillCount[1][lastWeaponPlayerDamaged[1]]++;
+				}
+				
+				PlaySound(duelPlayerNumber[1] + 1000, "hitsndkill", 8, 1.0, false, 1000.0);
+			}
+			else if(duelPlayerNumber[1] == PlayerNumber())
+			{
+				if(lastWeaponPlayerDamaged[0] == -1)
+				{
+					// Trust the weapon the player is holding
+					weaponKillCount[0][ACS_NamedExecuteWithResult("Get Player Weapon ID", duelPlayerNumber[0])]++;
+				}
+				else
+				{
+					weaponKillCount[0][lastWeaponPlayerDamaged[0]]++;
+				}
+				
+				PlaySound(duelPlayerNumber[0] + 1000, "hitsndkill", 8, 1.0, false, 1000.0);
+			}
+		}	
+	
+		// Show damage numbers if damage was dealt (registered by hitsound) and register the damage
+		if(dmgDealt && diff > 0)
+		{
+			if(!roundOver && duelPlayerNumber[0] != -1 && duelPlayerNumber[1] != -1)
+			{
+				// Give the damage we were dealt to the other player
+				if(duelPlayerNumber[0] == PlayerNumber())
+				{
+					if(lastWeaponPlayerDamaged[1] != -1)
+					{
+						weaponDamageDealt[1][lastWeaponPlayerDamaged[1]] += diff;
+					}
+				}
+				else if(duelPlayerNumber[1] == PlayerNumber())
+				{
+					if(lastWeaponPlayerDamaged[0] != -1)
+					{
+						weaponDamageDealt[0][lastWeaponPlayerDamaged[0]] += diff;					
+					}				
+				}			
+			}
+			
+			// Show our damage numbers
+			ACS_NamedExecuteAlways("Show Damage Numbers", 0, diff);	
+		}
+	}
+	while(GetActorProperty(0, APROP_Health) > 0);
+}
+
+SCRIPT "Show Damage Numbers" (int diff) CLIENTSIDE
+{
+	// Disabled damage numbers
+	if(!GetUserCvar(ConsolePlayerNumber(), "pro_damagenumbers"))
+	{
+		terminate;
+	}	
+
+	// Don't show damage numbers if flying in spectator mode
+	if(PlayerIsSpectator(ConsolePlayerNumber()) && CheckPlayerCamera(ConsolePlayerNumber()) < 1000)
+	{
+		terminate;
+	}
+	
+	// Don't show damage dealt to you by others, also for spectating purposes
+	if(CheckPlayerCamera(ConsolePlayerNumber()) == PlayerNumber() + 1000)
+	{
+		terminate;
+	}
+	
+	int x = GetActorX(0) + random(-8.0, 8.0);
+	int y = GetActorY(0) + random(-8.0, 8.0);
+	int z = GetActorZ(0) + random( 0.0, 8.0) + GetActorProperty(0, APROP_Height);
+	int a = random(0.0, 1.0);	
+	
+	if(diff > 9999)
+	{
+		SpawnForced("DamageNumberInf", x,y,z, 0, a);
+		terminate;
+	}
+	
+	int severity, position, digit;
+	str actor;
+	
+	severity = 1;
+	
+	while(diff > 0)
+	{
+		digit = diff % 10;
+		
+		diff /= 10;
+		position++;
+		
+		actor = strparam(s:"DamageNumber", d:severity, d:position, d:digit);
+		
+		SpawnForced(actor, x,y,z, 0, a);		
+	}
+}
+
+
+// ===========================================
+// ===========================================
+//
+// Duel stats system for Pro Duel by Proteh
+//
+// ===========================================
+// ===========================================
+
+function void resetStatsSystem(void) {
+	
+	duelPlayerNumber[0] = -1;
+	duelPlayerNumber[1] = -1;
+	fragCount[0] = 0;
+	fragCount[1] = 0;
+	deathCount[0] = 0;
+	deathCount[1] = 0;
+	killCount[0] = 0;
+	killCount[1] = 0;
+	lastWeaponPlayerDamaged[0] = -1;
+	lastWeaponPlayerDamaged[1] = -1;
+	
+	for(int i = 0; i < MAX_WEAPONS; i++)
+	{
+		weaponKillCount[0][i] = 0;
+		weaponKillCount[1][i] = 0;
+		shotsFired[0][i] = 0;
+		shotsFired[1][i] = 0;
+		hitsOnTarget[0][i] = 0;
+		hitsOnTarget[1][i] = 0;
+		weaponDamageDealt[0][i] = 0;
+		weaponDamageDealt[1][i] = 0;
+	}
+	
+	for(int j = 0; j < MAX_ITEMS; j++)
+	{
+		itemsTaken[0][j] = 0;
+		itemsTaken[1][j] = 0;
+	}
+}
+
+function void findActiveDuelPlayers(void) {	
+	
+	for(int i = 0, j = 0; i < 64; i++)
+	{
+		if(!PlayerInGame(i) && !PlayerIsSpectator(i))
+		{
+			continue;
+		}
+	
+		if(!PlayerIsSpectator(i))
+		{
+			duelPlayerNumber[j] = i;		
+			j++;
+		}
+		
+		if(j == 2)
+		{
+			break;
+		}
+	}
+}
+
+function int getIndexForPlayerNumber(int pNumber) {
+	
+	if(duelPlayerNumber[0] == pNumber)
+	{
+		return 0;
+	}
+	else if(duelPlayerNumber[1] == pNumber)
+	{
+		return 1;
+	}
+	
+	return -1;	
+}
+
+function int getPlayerWeaponAccuracyPercent(int pNumber, int weapon) {
+	
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1)
+	{
+		return 0;
+	}
+	
+	if(shotsFired[pIndex][weapon] == 0)
+	{
+		return 0;
+	}
+	
+	return (hitsOnTarget[pIndex][weapon] * 100) / shotsFired[pIndex][weapon];
+}
+
+function int getPlayerAverageAccuracyPercent(int pNumber) {
+	
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1)
+	{
+		return 0;
+	}
+	
+	int totalAccuracy = 0;
+	int totalWeapons = 10;
+	
+	for(int i = 0; i < MAX_WEAPONS; i++)
+	{
+		totalAccuracy += getPlayerWeaponAccuracyPercent(pNumber, i);
+	}
+	
+	return totalAccuracy / totalWeapons;
+}
+
+function int getPlayerTotalShotsFired(int pNumber) {
+
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1)
+	{
+		return 0;
+	}
+	
+	int totalShots = 0;
+	
+	for(int i = 2; i < MAX_WEAPONS; i++)
+	{
+		totalShots += shotsFired[pIndex][i];	
+	}	
+	
+	return totalShots;
+}
+
+function int getPlayerTotalHitsOnTarget(int pNumber) {
+
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1)
+	{
+		return 0;
+	}
+	
+	int totalHits = 0;
+	
+	for(int i = 2; i < MAX_WEAPONS; i++)
+	{
+		totalHits += hitsOnTarget[pIndex][i];	
+	}	
+	
+	return totalHits;
+}
+
+function int getPlayerDamageDealt(int pNumber) {
+
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1)
+	{
+		return 0;
+	}
+	
+	int damageDealt = 0;
+	
+	for(int i = 0; i < MAX_WEAPONS; i++)
+	{
+		damageDealt += weaponDamageDealt[pIndex][i];
+	}
+	
+	return damageDealt;
+}
+
+function int getPlayerCollectedMajorPickups(int pNumber) {
+	
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1)
+	{
+		return 0;
+	}
+	
+	int totalCollectedMajorPickups;
+	
+	for(int i = 0; i < MAX_ITEMS; i++)
+	{
+		totalCollectedMajorPickups += itemsTaken[pIndex][i];
+	}
+	
+	return totalCollectedMajorPickups;
+}
+
+function int getPlayerMajorPickupAmount(int pNumber, int itemId) {
+
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1 || (itemId < 0 || itemId >= MAX_ITEMS))
+	{
+		return 0;
+	}
+			
+	return itemsTaken[pIndex][itemId];
+}
+
+function int getPlayerSuicideCount(int pNumber) {
+	
+	int pIndex = getIndexForPlayerNumber(pNumber);
+	
+	if(pIndex == -1)
+	{
+		return 0;
+	}
+	
+	return killCount[pIndex] - fragCount[pIndex];
+}
+
+function int getWeaponIdByClassName(str className) {
+	
+	if(!StrIcmp(className, "FistE"))
+	{
+		return WEAPON_FIST;
+	}
+	
+	if(!StrIcmp(className, "ChainsawE"))
+	{
+		return WEAPON_CHAINSAW;
+	}
+	
+	if(!StrIcmp(className, "PistolE"))
+	{
+		return WEAPON_PISTOL;
+	}
+	
+	if(!StrIcmp(className, "ShotgunE"))
+	{
+		return WEAPON_SHOTGUN;
+	}
+	
+	if(!StrIcmp(className, "SuperShotgunE"))
+	{
+		return WEAPON_SSG;
+	}
+	
+	if(!StrIcmp(className, "ChaingunE"))
+	{
+		return WEAPON_CHAINGUN;
+	}
+	
+	if(!StrIcmp(className, "LGunE"))
+	{
+		return WEAPON_LG;
+	}
+	
+	if(!StrIcmp(className, "Railgun"))
+	{
+		return WEAPON_RAILGUN;
+	}
+	
+	if(!StrIcmp(className, "RocketLauncherE"))
+	{
+		return WEAPON_RL;
+	}
+	
+	if(!StrIcmp(className, "GrenadeLE"))
+	{
+		return WEAPON_GL;
+	}
+	
+	if(!StrIcmp(className, "PlasmaRifleE"))
+	{
+		return WEAPON_PLASMA;
+	}
+	
+	if(!StrIcmp(className, "BFGE"))
+	{
+		return WEAPON_BFG;
+	}
+	
+	return WEAPON_OTHER;
+}
+
+function bool isWeaponDroppable(str className) {
+
+	if(!StrIcmp(className, "ShotgunE"))
+	{
+		return true;
+	}
+	
+	if(!StrIcmp(className, "SuperShotgunE"))
+	{
+		return true;
+	}
+	
+	if(!StrIcmp(className, "ChaingunE"))
+	{
+		return true;
+	}
+	
+	if(!StrIcmp(className, "LGunE"))
+	{
+		return true;
+	}
+	
+	if(!StrIcmp(className, "Railgun"))
+	{
+		return true;
+	}
+	
+	if(!StrIcmp(className, "RocketLauncherE"))
+	{
+		return true;
+	}
+	
+	if(!StrIcmp(className, "GrenadeLE"))
+	{
+		return true;
+	}
+	
+	if(!StrIcmp(className, "PlasmaRifleE"))
+	{
+		return true;
+	}
+	
+	return false;	
+}
+
+function bool IsColorCodeChar(int c)
+{
+	return (c >= 'a' && c <= 'v')
+		|| (c >= 'A' && c <= 'V')
+		|| c == '-'
+		|| c == '+'
+		|| c == '*'
+		|| c == '!';
+}
+
+function int SkipColorCodeAt(str s, int i)
+{
+	if (GetChar(s, i) == 28)
+	{
+		i++;
+	}
+	else
+	{
+		return i;
+	}
+	
+	if (GetChar(s, i) == '[')
+	{
+		int len = StrLen(s);
+		
+		for (; i < len; i++)
+		{
+			if (GetChar(s, i) == ']')
+			{
+				i++;
+				break;
+			}
+		}
+	}
+	else if (IsColorCodeChar(GetChar(s, i)))
+	{
+		return i + 1;
+	}
+	
+	return i;
+}
+
+function str StripColorCodes(str s)
+{
+	str result = "";
+	
+	for (int i = 0; i < StrLen(s); i++)
+	{
+		i = SkipColorCodeAt(s, i);
+		result = StrParam(s:result, c:GetChar(s, i));
+	}
+
+	return result;
+}
+
+function int power (int num, int pwr)
+{
+	int n = num;
+
+	if (pwr == 0)
+	{
+		return 1;
+	}
+
+	for (int i = 1; i < pwr; i++)
+	{
+		num *= n;
+	}
+
+	return num;
+}
+
+function bool StrCmpZan (str s1, str s2)
+{
+	int c1 = GetChar(s1, 0);
+	int c2 = GetChar(s2, 0);
+   
+	if (c1 == c2)
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+function int atoi (str s)
+{
+	str a = "";
+	int i, i2, n;
+	int l = StrLen(s);
+
+	for (i = 0; i < l; i++)
+	{
+		for (i2 = 0; i2 < 10; i2++)
+		{
+			a = StrParam(i:i2);
+		 
+			if (!StrCmpZan(StrParam(c:GetChar(s, i)), a))
+			{		 
+				n += i2 * power(10, l - i - 1);
+			}
+		}
+	}
+
+	return n;
+}
+
+function str generateAuthKey(void) {
+	
+	// Possible symbols to use for they auth key
+	str symbols = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		
+	// Control characters for the key validation
+	str controlChars = "TRWAGMYFPDXBNJZSQVHLCKE";
+	
+	// Generated digits for the key validation
+	str generatedDigits = "";
+	
+	// String to store the generated auth key
+	str generatedAuthKey = "pro";
+	
+	// Generate the first 8 random numbers that will let us validate the key as valid or not in the future
+	for(int i = 0; i < 8; i++)
+	{
+		generatedDigits = StrParam(s:generatedDigits, d:Random(0, 9));
+	}
+	
+	// Concat the digits to the auth key and it's control character
+	generatedAuthKey = StrParam(s:generatedAuthKey, s:generatedDigits, c:GetChar(controlChars, atoi(generatedDigits) % 23));
+	
+	// Generate the rest of the auth key (it's length minus 9: 8 digits and it's control character)
+	for(int j = 0; j < AUTH_KEY_LENGTH - 9; j++)
+	{
+		generatedAuthKey = StrParam(s:generatedAuthKey, c:GetChar(symbols, Random(0, StrLen(symbols) - 1)));
+	}
+	
+	// Return the generated auth key
+	return generatedAuthKey;
+}
+
+function bool isAuthKeyValid(str authKey) {
+
+	// The key must start with 'pro' and have a length of 64 characters
+	if(StrCmp(StrLeft(authKey, 3), "pro") || StrLen(authKey) != AUTH_KEY_LENGTH + 3)
+	{
+		return false;
+	}
+	
+	// Control characters for the key validation
+	str controlChars = "TRWAGMYFPDXBNJZSQVHLCKE";
+
+	// Validate the control char
+	return GetChar(controlChars, atoi(StrMid(authKey, 3, 8)) % 23) == GetChar(authKey, 11);
+}
+
+function bool doesAuthKeyExist(str authKey) {
+	
+	if(!StrICmp(GetDBEntryString("PlayerName", authKey), ""))
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+function bool isAuthKeyInUse(str authKey) {
+
+	for(int i = 0; i < 64; i++)
+	{
+		if(!playerLoggedIn[i])
+		{
+			continue;
+		}
+		
+		if(!StrCmp(authKey, playerAuthKey[i]))
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+function bool doesPlayerNameExist(int pNum) {
+
+	str playerName = "";
+	playerName = StrParam(n:pNum + 1);
+	int playerNames = GetDBEntries("PlayerName");
+	int rows = CountDBResults(playerNames);
+	
+	for(int i = 0; i < rows; i++)
+	{
+		if(!StrIcmp(StripColorCodes(playerName), GetDBResultValueString(playerNames, i)))
+		{
+			FreeDBResults(playerNames);
+			return true;
+		}
+	}
+	
+	FreeDBResults(playerNames);
+	return false;
+}
+
+function void initializePlayerAccount(str authKey, int pNumber) {
+	
+	int playerName = StrParam(n:pNumber + 1);
+	
+	BeginDBTransaction();
+	SetDBEntryString("PlayerName", authKey, StripColorCodes(playerName));
+	SetDBEntry("PlayerWins", authKey, 0);
+	SetDBEntry("PlayerLosses", authKey, 0);
+	EndDBTransaction();
+}
+
+function str getPlayerAccName(int pNum) {
+	
+	str result = "";
+	
+	if(!playerLoggedIn[pNum])
+	{
+		return result;
+	}
+	
+	result = GetDBEntryString("PlayerName", playerAuthKey[pNum]);
+	return result;
+}
+
+SCRIPT "DisplayLeaderboards" (int pNum, int force) NET
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+	
+	if((GetGamemodeState() == 2 || GetGamemodeState() == 3 || roundOver) && force == 0)
+	{
+		terminate;
+	}
+
+	str rankHudDisplay = "\crTop 10 Pro Duel Ranking (Most Wins)\n\n";
+	int playerWins = SortDBEntries("PlayerWins", 10, 0, 1);
+	int rows = CountDBResults(playerWins);
+	
+	if(rows <= 0)
+	{
+		terminate;
+	}	
+	
+	for(int i = 0, j = 1; i < rows; i++)
+	{
+		// No wins, no show :)
+		if(GetDBResultValue(playerWins, i) <= 0)
+		{
+			continue;
+		}
+		
+		if(j == 1)
+		{
+			rankHudDisplay = StrParam(s:rankHudDisplay, s:"\cf1st. \cc",
+			s:GetDBEntryString("PlayerName", GetDBResultKeyString(playerWins, i)),
+			s:" \cm[\cd", d:GetDBEntry("PlayerWins", GetDBResultKeyString(playerWins, i)),
+			s:"\cm/\ca", d:GetDBEntry("PlayerLosses", GetDBResultKeyString(playerWins, i)),
+			s:"\cm]\n");
+		}
+		else if(j == 2)
+		{
+			rankHudDisplay = StrParam(s:rankHudDisplay, s:"\cu2nd. \cc",
+			s:GetDBEntryString("PlayerName", GetDBResultKeyString(playerWins, i)),
+			s:" \cm[\cd", d:GetDBEntry("PlayerWins", GetDBResultKeyString(playerWins, i)),
+			s:"\cm/\ca", d:GetDBEntry("PlayerLosses", GetDBResultKeyString(playerWins, i)),
+			s:"\cm]\n");
+		}
+		else if(j == 3)
+		{
+			rankHudDisplay = StrParam(s:rankHudDisplay, s:"\ci3rd. \cc",
+			s:GetDBEntryString("PlayerName", GetDBResultKeyString(playerWins, i)),
+			s:" \cm[\cd", d:GetDBEntry("PlayerWins", GetDBResultKeyString(playerWins, i)),
+			s:"\cm/\ca", d:GetDBEntry("PlayerLosses", GetDBResultKeyString(playerWins, i)),
+			s:"\cm]\n");
+		}
+		else
+		{
+			rankHudDisplay = StrParam(s:rankHudDisplay, d:j, s:"th. ",
+			s:GetDBEntryString("PlayerName", GetDBResultKeyString(playerWins, i)),
+			s:" \cm[\cd", d:GetDBEntry("PlayerWins", GetDBResultKeyString(playerWins, i)),
+			s:"\cm/\ca", d:GetDBEntry("PlayerLosses", GetDBResultKeyString(playerWins, i)),
+			s:"\cm]\n");
+		}
+		
+		j++;
+	}
+			
+	FreeDBResults(playerWins);
+	
+	// No results were found, don't show the message
+	if(j == 1)
+	{
+		terminate;
+	}
+	
+	if(pNum != 0)
+	{
+		if(pNum != -1)
+		{		
+			SetActivator(pNum + 1000);
+		}
+		
+		HudMessage(s:rankHudDisplay; HUDMSG_PLAIN, -1, CR_WHITE, 1.5, 0.5, 10.0);
+		terminate;
+	}
+	
+	HudMessageBold(s:rankHudDisplay; HUDMSG_PLAIN, -1, CR_WHITE, 1.5, 0.5, 10.0);	
+}
+
+function void saveMatchResults(void) {
+	
+	// Don't save match results if no duel was played
+	if(!roundOver || duelPlayerNumber[0] == -1 && duelPlayerNumber[1] == -1)
+	{
+		return;
+	}	
+	
+	Log(s:"[PRODUEL-STATS] Saving last match data...\n[PRODUEL-STATS] Serializing match data...");
+	
+	// Serialize match data in JSON format
+	// Match data object
+	str matchData = "{\x22version\x22:\x221\x22,\x22match_data\x22:{";
+
+	// General info
+	matchData = StrParam(s:matchData, s:"\x22timestamp\x22:\x22", d:SystemTime(), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22gametype\x22:\x22produel\x22,");
+	matchData = StrParam(s:matchData, s:"\x22duration_seconds\x22:\x22", d:((ticsDuelEnd - ticsDuelStart) / 35), s:"\x22,");
+
+	// Server info object
+	matchData = StrParam(s:matchData, s:"\x22server\x22:{");
+	matchData = StrParam(s:matchData, s:"\x22hostname\x22:\x22", s:GetCVarString("sv_hostname"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22website\x22:\x22", s:GetCVarString("sv_website"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22email\x22:\x22", s:GetCVarString("sv_hostemail"), s:"\x22},");
+
+	// Rules object
+	matchData = StrParam(s:matchData, s:"\x22rules\x22:{");
+	matchData = StrParam(s:matchData, s:"\x22timelimit\x22:\x22", d:(GetCVar("timelimit") / 65536), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22fraglimit\x22:\x22", d:GetCVar("fraglimit"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22overtime\x22:\x22", d:GetCVar("sv_suddendeath"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22dmflags\x22:\x22", d:GetCVar("dmflags"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22dmflags2\x22:\x22", d:GetCVar("dmflags2"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22zadmflags\x22:\x22", d:GetCVar("zadmflags"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22zadmflags2\x22:\x22", d:GetCVar("zadmflags2"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22compatflags\x22:\x22", d:GetCVar("compatflags"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22compatflags2\x22:\x22", d:GetCVar("compatflags2"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22zacompatflags\x22:\x22", d:GetCVar("zacompatflags"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22aircontrol\x22:\x22", f:GetCVar("sv_aircontrol"), s:"\x22,");
+	matchData = StrParam(s:matchData, s:"\x22pro_dropweapons\x22:\x22", d:GetCVar("pro_dropweapons"), s:"\x22},");
+
+	// Map object
+	matchData = StrParam(s:matchData, s:"\x22map\x22:{");
+	matchData = StrParam(s:matchData, s:"\x22name\x22:\x22", n:PRINTNAME_LEVELNAME, s:"\x22,"); // TODO
+	matchData = StrParam(s:matchData, s:"\x22lumpname\x22:\x22", n:PRINTNAME_LEVEL, s:"\x22},"); // TODO
+
+	// Players object
+	matchData = StrParam(s:matchData, s:"\x22players\x22:{");
+
+	for(int i = 0; i < 2; i++)
+	{
+		str playerName = "";
+		playerName = StrParam(n:duelPlayerNumber[i] + 1);
+		
+		// Player object
+		matchData = StrParam(s:matchData, s:"\x22player", d:(i + 1) , s:"\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22authkey\x22:\x22", s:playerAuthKey[duelPlayerNumber[i]], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22name\x22:\x22", s:StripColorCodes(playerName), s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22frags\x22:\x22", d:fragCount[i], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22deaths\x22:\x22", d:deathCount[i], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22suicides\x22:\x22", d:getPlayerSuicideCount(duelPlayerNumber[i]), s:"\x22,");
+
+		// Player stats object
+		matchData = StrParam(s:matchData, s:"\x22stats\x22:{");
+
+		// Player item stats object
+		matchData = StrParam(s:matchData, s:"\x22items\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22ya\x22:\x22", d:itemsTaken[i][ITEM_YELLOWARMOR], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22ra\x22:\x22", d:itemsTaken[i][ITEM_REDARMOR], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22ss\x22:\x22", d:itemsTaken[i][ITEM_GREENARMOR], s:"\x22},");
+
+		// Player weapon stats object
+		matchData = StrParam(s:matchData, s:"\x22weapons\x22:{");
+
+		// Fist object
+		matchData = StrParam(s:matchData, s:"\x22fist\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_FIST], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_FIST], s:"\x22},");
+		 
+		// Chainsaw object
+		matchData = StrParam(s:matchData, s:"\x22chainsaw\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_CHAINSAW], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_CHAINSAW], s:"\x22},");
+
+		// Pistol object
+		matchData = StrParam(s:matchData, s:"\x22pistol\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_PISTOL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_PISTOL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_PISTOL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_PISTOL], s:"\x22},");
+
+		// Shotgun object
+		matchData = StrParam(s:matchData, s:"\x22shotgun\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_SHOTGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_SHOTGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_SHOTGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_SHOTGUN], s:"\x22},");
+
+		// Super Shotgun object
+		matchData = StrParam(s:matchData, s:"\x22ssg\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_SSG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_SSG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_SSG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_SSG], s:"\x22},");
+
+		// Chaingun object
+		matchData = StrParam(s:matchData, s:"\x22chaingun\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_CHAINGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_CHAINGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_CHAINGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_CHAINGUN], s:"\x22},");
+
+		// Plasma rifle object
+		matchData = StrParam(s:matchData, s:"\x22plasmarifle\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_PLASMA], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_PLASMA], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_PLASMA], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_PLASMA], s:"\x22},");
+
+		// Rocket Launcher object
+		matchData = StrParam(s:matchData, s:"\x22rocketlauncher\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_RL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_RL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_RL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_RL], s:"\x22},");
+
+		// Grenade Launcher object
+		matchData = StrParam(s:matchData, s:"\x22grenadelauncher\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_GL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_GL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_GL], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_GL], s:"\x22},");
+
+		 // Lightning Gun object
+		matchData = StrParam(s:matchData, s:"\x22lightninggun\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_LG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_LG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_LG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_LG], s:"\x22},");
+
+
+		// Railgun object
+		matchData = StrParam(s:matchData, s:"\x22railgun\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_RAILGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_RAILGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_RAILGUN], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_RAILGUN], s:"\x22},");
+
+		// BFG object
+		matchData = StrParam(s:matchData, s:"\x22bfg\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22shots\x22:\x22", d:shotsFired[i][WEAPON_BFG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22hits\x22:\x22", d:hitsOnTarget[i][WEAPON_BFG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_BFG], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_BFG], s:"\x22},");
+
+		// Other object
+		matchData = StrParam(s:matchData, s:"\x22other\x22:{");
+		matchData = StrParam(s:matchData, s:"\x22kills\x22:\x22", d:weaponKillCount[i][WEAPON_OTHER], s:"\x22,");
+		matchData = StrParam(s:matchData, s:"\x22damage\x22:\x22", d:weaponDamageDealt[i][WEAPON_OTHER], s:"\x22}}}}");
+
+		if(i == 0)
+		{
+			matchData = StrParam(s:matchData, s:",");
+		}
+	}
+	
+	matchData = StrParam(s:matchData, s:"}}}");
+	
+	Log(s:"[PRODUEL-STATS] Match data serialized.");
+	Log(s:"[PRODUEL-STATS] Initiating DB transaction...");
+	
+	BeginDBTransaction();
+	
+	Log(s:"[PRODUEL-STATS] Writing match data...");
+	
+	// If it's the first match ever, initialize the counter first
+	if(GetDBEntry("MatchResults", "TotalMatches") == 0)
+	{
+		SetDBEntry("MatchResults", "TotalMatches", 0);
+	}
+	
+	// Increment total matches number
+	IncrementDBEntry("MatchResults", "TotalMatches", 1);
+	
+	// Setup key names to write to MatchResults namespace
+	str matchId = StrParam(d:GetDBEntry("MatchResults", "TotalMatches"), s:"_data");
+	
+	// Write the match data
+	SetDBEntryString("MatchResults", matchId, matchData);
+	
+	// Count wins / loses for players
+	if(playerLoggedIn[duelPlayerNumber[0]])
+	{
+		if(fragCount[0] > fragCount[1])
+		{
+			IncrementDBEntry("PlayerWins", playerAuthKey[duelPlayerNumber[0]], 1);
+		}
+		else if(fragCount[0] < fragCount[1])
+		{
+			IncrementDBEntry("PlayerLosses", playerAuthKey[duelPlayerNumber[0]], 1);
+		}
+	}
+	
+	if(playerLoggedIn[duelPlayerNumber[1]])
+	{
+		if(fragCount[1] > fragCount[0])
+		{
+			IncrementDBEntry("PlayerWins", playerAuthKey[duelPlayerNumber[1]], 1);
+		}
+		else if(fragCount[1] < fragCount[0])
+		{
+			IncrementDBEntry("PlayerLosses", playerAuthKey[duelPlayerNumber[1]], 1);
+		}
+	}	
+	
+	Log(s:"[PRODUEL-STATS] Match data written.");
+	
+	EndDBTransaction();
+	
+	Log(s:"[PRODUEL-STATS] DB transaction finished. Last match data successfully saved.");
+}
+
+Script "Player Dies" DEATH
+{
+	if(duelPlayerNumber[0] != -1 && duelPlayerNumber[1] != -1)
+	{
+		int pIndex = getIndexForPlayerNumber(PlayerNumber());
+		
+		if(pIndex == -1)
+		{
+			terminate;
+		}
+		
+		fragCount[pIndex] = PlayerFrags();
+		deathCount[pIndex]++;	
+	}
+	
+	// Drop weapon if droppable
+	str currentWeapon = GetWeapon();
+	
+	if(GetCVar("pro_dropweapons"))
+	{
+		if(isWeaponDroppable(currentWeapon))
+		{
+			str droppedWeapon = "";
+			droppedWeapon = StrParam(s:"D", s:currentWeapon);
+			SpawnForced(droppedWeapon, GetActorX(0), GetActorY(0), GetActorZ(0));	
+		}
+	}	
+}
+
+SCRIPT "Game Event" (int type, int arg1, int arg2) EVENT
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+	
+	switch(type)
+	{
+		case 0: // Player frags player
+			if(duelPlayerNumber[0] != -1 && duelPlayerNumber[1] != -1)
+			{
+				int pIndex = getIndexForPlayerNumber(PlayerNumber());
+				
+				if(pIndex == -1)
+				{
+					terminate;
+				}				
+				
+				fragCount[pIndex] = PlayerFrags();
+				killCount[pIndex]++;
+			}
+			break;
+		case 5: // Round starts
+			// Round starts, not over
+			roundOver = false;
+			
+			// Clear ranking display
+			HudMessageBold(s:" "; HUDMSG_PLAIN, -1, CR_WHITE, 1.5, 0.5, 0);	
+			
+			// Unfreeze players
+			SetPlayerProperty (1, 0, PROP_TOTALLYFROZEN);
+		
+			resetStatsSystem();
+			findActiveDuelPlayers();
+			ticsDuelStart = Timer();			
+			break;
+		case 6: // Round ends
+			ticsDuelEnd = Timer();
+						
+			delay(35); // Needed for last stuff to register
+		
+			// Round is over
+			roundOver = true;
+			
+			// Freeze players
+			SetPlayerProperty (1, 1, PROP_TOTALLYFROZEN);		
+		
+			// Show stats
+			
+			// Global stats
+			int mostAccuratePlayer;
+			int bestControlPlayer;
+			int mostDamagePlayer;
+			int playerWinner;
+			int playerWinnerFrags = 0;
+			int playerWinnerDeaths = 0;
+			int playerLoser;
+			int playerLoserFrags = 0;
+			int playerLoserDeaths = 0;
+			
+			// Item control calc
+			if(getPlayerCollectedMajorPickups(duelPlayerNumber[0]) > getPlayerCollectedMajorPickups(duelPlayerNumber[1]))
+			{
+				bestControlPlayer = StrParam(n:duelPlayerNumber[0] + 1);
+			}
+			else if(getPlayerCollectedMajorPickups(duelPlayerNumber[0]) < getPlayerCollectedMajorPickups(duelPlayerNumber[1]))
+			{
+				bestControlPlayer = StrParam(n:duelPlayerNumber[1] + 1);
+			}
+			else
+			{
+				bestControlPlayer = "Equal";
+			}
+			
+			// Accuracy calc
+			if(getPlayerAverageAccuracyPercent(duelPlayerNumber[0]) > getPlayerAverageAccuracyPercent(duelPlayerNumber[1]))
+			{
+				mostAccuratePlayer = StrParam(n:duelPlayerNumber[0] + 1);
+			}
+			else if(getPlayerAverageAccuracyPercent(duelPlayerNumber[0]) < getPlayerAverageAccuracyPercent(duelPlayerNumber[1]))
+			{
+				mostAccuratePlayer = StrParam(n:duelPlayerNumber[1] + 1);
+			}
+			else
+			{
+				mostAccuratePlayer = "Equal";
+			}
+			
+			// Potential most damage
+			if(getPlayerDamageDealt(duelPlayerNumber[0]) > getPlayerDamageDealt(duelPlayerNumber[1]))
+			{
+				mostDamagePlayer = StrParam(n:duelPlayerNumber[0] + 1);
+			}
+			else if(getPlayerDamageDealt(duelPlayerNumber[0]) < getPlayerDamageDealt(duelPlayerNumber[1]))
+			{
+				mostDamagePlayer = StrParam(n:duelPlayerNumber[1] + 1);
+			}
+			else
+			{
+				mostDamagePlayer = "Equal";
+			}
+			
+			if(fragCount[0] > fragCount[1])
+			{
+				playerWinner = StrParam(n:duelPlayerNumber[0] + 1);
+				playerWinnerFrags = fragCount[0];
+				playerWinnerDeaths = deathCount[0];
+				playerLoser = StrParam(n:duelPlayerNumber[1] + 1);
+				playerLoserFrags = fragCount[1];
+				playerLoserDeaths = deathCount[1];
+			}
+			else if(fragCount[0] < fragCount[1])
+			{
+				playerWinner = StrParam(n:duelPlayerNumber[1] + 1);
+				playerWinnerFrags = fragCount[1];
+				playerWinnerDeaths = deathCount[1];
+				playerLoser = StrParam(n:duelPlayerNumber[0] + 1);
+				playerLoserFrags = fragCount[0];
+				playerLoserDeaths = deathCount[0];
+			}	
+			else
+			{
+				playerWinner = "Draw";
+				playerLoser = "Draw";
+			}
+						
+			// Printing			
+			if(GetCvar("duellimit") == 0)
+			{
+				HudMessageBold(s:"\crLast Match Overall Stats:\n\n",
+					s:"\cfWinner: \cc", s:playerWinner, s:" \cc(", d:playerWinnerFrags, s:" frags, ", d:playerWinnerDeaths, s:" deaths)",
+					s:"\n\caLoser: \cc", s:playerLoser, s:" \cc(", d:playerLoserFrags, s:" frags, ", d:playerLoserDeaths, s:" deaths)",
+					s:"\n\n\ckMost accurate: \cc", s:mostAccuratePlayer,
+					s:"\n\ckBest Item Control: \cc", s:bestControlPlayer,
+					s:"\n\ckMost Damage Dealt: \cc", s:mostDamagePlayer,
+					s:"\n\n\ccMap changes in 15 seconds...";
+					HUDMSG_PLAIN, -1, CR_GOLD, 1.5, 0.5, 0);				
+			}
+			else
+			{
+				HudMessageBold(s:"\crLast Match Overall Stats:\n\n",
+					s:"\cfWinner: \cc", s:playerWinner, s:" \cc(", d:playerWinnerFrags, s:" frags, ", d:playerWinnerDeaths, s:" deaths)",
+					s:"\n\caLoser: \cc", s:playerLoser, s:" \cc(", d:playerLoserFrags, s:" frags, ", d:playerLoserDeaths, s:" deaths)",
+					s:"\n\n\ckMost accurate: \cc", s:mostAccuratePlayer,
+					s:"\n\ckBest Item Control: \cc", s:bestControlPlayer,
+					s:"\n\ckMost Damage Dealt: \cc", s:mostDamagePlayer;
+					HUDMSG_PLAIN, -1, CR_GOLD, 1.5, 0.5, 0);							
+			}
+			
+			// End global stats
+			SetFont("CONFONT");
+						
+			// Player 1 stats
+			HudMessageBold(n:duelPlayerNumber[0] + 1, s:"'s stats:\n\n\c!Major Pickups:\cc\n",
+				s:"\n\ccYellow Armors:    \cf", d:getPlayerMajorPickupAmount(duelPlayerNumber[0], ITEM_YELLOWARMOR),
+				s:"\n\ccRed Armors:       \cg", d:getPlayerMajorPickupAmount(duelPlayerNumber[0], ITEM_REDARMOR),
+				s:"\n\ccSoulspheres:      \cn", d:getPlayerMajorPickupAmount(duelPlayerNumber[0], ITEM_SOULSPHERE),
+				s:"\n\n\c!Weapon Accuracy:\cc\n",				
+				s:"\nPistol:           \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_PISTOL), s:"%",
+				s:"\n\ccShotgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_SHOTGUN), s:"%",
+				s:"\n\ccSSG:              \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_SSG), s:"%",
+				s:"\n\ccChaingun:         \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_CHAINGUN), s:"%",
+				s:"\n\ccPlasma Rifle:     \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_PLASMA), s:"%",
+				s:"\n\ccRocket Launcher   \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_RL), s:"%",
+				s:"\n\ccGrenade Launcher: \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_GL), s:"%",
+				s:"\n\ccLightning Gun:    \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_LG), s:"%",
+				s:"\n\ccRailgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_RAILGUN), s:"%",
+				s:"\n\n\ccDamage Dealt:     \ck", d:getPlayerDamageDealt(duelPlayerNumber[0]);
+				HUDMSG_PLAIN, 1, CR_WHITE, 0.0, 0.6, 0);
+				
+			// End player 1 stats
+			
+			// Player 2 stats
+			HudMessageBold(n:duelPlayerNumber[1] + 1, s:"'s stats:\n\n\c!Major Pickups:\cc\n",
+				s:"\n\ccYellow Armors:    \cf", d:getPlayerMajorPickupAmount(duelPlayerNumber[1], ITEM_YELLOWARMOR),
+				s:"\n\ccRed Armors:       \cg", d:getPlayerMajorPickupAmount(duelPlayerNumber[1], ITEM_REDARMOR),
+				s:"\n\ccSoulspheres:      \cn", d:getPlayerMajorPickupAmount(duelPlayerNumber[1], ITEM_SOULSPHERE),
+				s:"\n\n\c!Weapon Accuracy:\cc\n",				
+				s:"\nPistol:           \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_PISTOL), s:"%",
+				s:"\n\ccShotgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_SHOTGUN), s:"%",
+				s:"\n\ccSSG:              \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_SSG), s:"%",
+				s:"\n\ccChaingun:         \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_CHAINGUN), s:"%",
+				s:"\n\ccPlasma Rifle:     \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_PLASMA), s:"%",
+				s:"\n\ccRocket Launcher:  \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_RL), s:"%",
+				s:"\n\ccGrenade Launcher: \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_GL), s:"%",
+				s:"\n\ccLightning Gun:    \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_LG), s:"%",
+				s:"\n\ccRailgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_RAILGUN), s:"%",
+				s:"\n\n\ccDamage Dealt:     \ck", d:getPlayerDamageDealt(duelPlayerNumber[1]);
+				HUDMSG_PLAIN, 2, CR_WHITE, 1.0, 0.6, 0);			
+			
+			// End player 2 stats		
+			
+			// Save match results
+			saveMatchResults();
+			
+			if(GetCvar("duellimit") == 0)
+			{
+				delay(500);
+				ConsoleCommand("nextmap");
+				terminate;
+			}
+			
+			break;
+		case 7:
+			// Round aborted, not over
+			roundOver = false;
+			
+			resetStatsSystem();
+			
+			delay(2); // Give time for the gamemode state to change
+			ACS_NamedExecuteAlways("DisplayLeaderboards", 0, 0, 0);
+			break;
+		default:
+			break;
+	}
+}
+
+SCRIPT "Register Item Taken" (int itemId)
+{
+	int pIndex = getIndexForPlayerNumber(PlayerNumber());
+	
+	if(pIndex == -1 || itemId < 0 || itemId >= MAX_ITEMS)
+	{
+		terminate;
+	}
+	
+	itemsTaken[pIndex][itemId]++;
+}
+
+SCRIPT "Register Weapon Shot" (int weapon)
+{
+	int pIndex = getIndexForPlayerNumber(PlayerNumber());
+	
+	if(pIndex == -1)
+	{
+		terminate;
+	}
+	
+	SetActivatorToTarget(0);
+	shotsFired[pIndex][weapon]++;
+}
+
+SCRIPT "Hit Marker Sound" (int numHits, int hitSoundType, int weapon)
+{
+	// No hits, no sound
+	if(numHits <= 0)
+	{
+		terminate;
+	}	
+	
+    // The original activator is the puff or projectile that hit, whose target is the player who shot it
+    // So we change the activator to the target which is the player	
+	SetActivatorToTarget(0);    
+	
+	// Get the player index for the duel stats system
+	int pIndex = getIndexForPlayerNumber(PlayerNumber());
+	
+	if(pIndex != -1)
+	{
+		// Current weapon equiped to detect hitscan hits easily
+		str currentWeapon = GetWeapon();
+		int weaponId = getWeaponIdByClassName(currentWeapon);	
+		bool isHitscan = weaponId != WEAPON_OTHER && weaponId != WEAPON_RL && weaponId != WEAPON_GL && weaponId != WEAPON_PLASMA && weaponId != WEAPON_BFG;
+		
+		if(isHitscan)
+		{
+			hitsOnTarget[pIndex][weaponId]++;
+			lastWeaponPlayerDamaged[pIndex] = weaponId;
+		}
+		else
+		{
+			hitsOnTarget[pIndex][weapon]++;
+			lastWeaponPlayerDamaged[pIndex] = weapon;
+		}	
+	}
+	
+	// Hit marker sound played, player did damage to another player
+	dmgDealt = true;
+	
+	// Play the sound from the player with high attenuation so it isn't heard by others (client side)
+	ACS_NamedExecute("Hit Sound Player", 0, hitSoundType);
+	 	
+	// Wait a bit so the damage number system knows about the hit
+	delay(1);
+	
+	// Reset to false after a bit
+	dmgDealt = false;
+	
+	if(pIndex != -1)
+	{
+		lastWeaponPlayerDamaged[pIndex] = -1;
+	}
+}
+
+SCRIPT "Hit Sound Player" (int hitSoundType) CLIENTSIDE
+{
+	if(!GetUserCVar(ConsolePlayerNumber(), "pro_hitsounds"))
+	{
+		terminate;
+	}
+
+	// Hit sound to use
+	str hitSound;
+
+	switch(hitSoundType)
+	{
+		case 0:
+			hitSound = "hitsnd";
+			break;
+		case 1:
+			hitSound = "hitsndm";
+			break;
+		case 2:
+			hitSound = "hitsndh";
+			break;
+		default:
+			hitSound = "hitsnd";
+			break;
+	}
+
+	PlaySound(0, hitSound, 8, 1.0, false, 1000.0);
+}
+
+SCRIPT "ShowStats" (void) NET
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+
+	if((duelPlayerNumber[0] == -1 && duelPlayerNumber[1] == -1) || roundOver)
+	{
+		terminate;
+	}
+
+	SetFont("CONFONT");
+	
+	if(PlayerIsSpectator(PlayerNumber()))
+	{
+		// Player 1 stats
+		HudMessage(n:duelPlayerNumber[0] + 1, s:"'s stats:\n\n\c!Major Pickups:\cc\n",
+			s:"\n\ccYellow Armors:    \cf", d:getPlayerMajorPickupAmount(duelPlayerNumber[0], ITEM_YELLOWARMOR),
+			s:"\n\ccRed Armors:       \cg", d:getPlayerMajorPickupAmount(duelPlayerNumber[0], ITEM_REDARMOR),
+			s:"\n\ccSoulspheres:      \cn", d:getPlayerMajorPickupAmount(duelPlayerNumber[0], ITEM_SOULSPHERE),
+			s:"\n\n\c!Weapon Accuracy:\cc\n",				
+			s:"\nPistol:           \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_PISTOL), s:"%",
+			s:"\n\ccShotgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_SHOTGUN), s:"%",
+			s:"\n\ccSSG:              \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_SSG), s:"%",
+			s:"\n\ccChaingun:         \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_CHAINGUN), s:"%",
+			s:"\n\ccPlasma Rifle:     \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_PLASMA), s:"%",
+			s:"\n\ccRocket Launcher   \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_RL), s:"%",
+			s:"\n\ccGrenade Launcher: \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_GL), s:"%",
+			s:"\n\ccLightning Gun:    \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_LG), s:"%",
+			s:"\n\ccRailgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_RAILGUN), s:"%",
+			s:"\n\n\ccDamage Dealt:     \ck", d:getPlayerDamageDealt(duelPlayerNumber[0]);
+			HUDMSG_PLAIN, 1, CR_WHITE, 0.0, 0.6, 5.0);
+			
+		// End player 1 stats
+		
+		// Player 2 stats
+		HudMessage(n:duelPlayerNumber[1] + 1, s:"'s stats:\n\n\c!Major Pickups:\cc\n",
+			s:"\n\ccYellow Armors:    \cf", d:getPlayerMajorPickupAmount(duelPlayerNumber[1], ITEM_YELLOWARMOR),
+			s:"\n\ccRed Armors:       \cg", d:getPlayerMajorPickupAmount(duelPlayerNumber[1], ITEM_REDARMOR),
+			s:"\n\ccSoulspheres:      \cn", d:getPlayerMajorPickupAmount(duelPlayerNumber[1], ITEM_SOULSPHERE),
+			s:"\n\n\c!Weapon Accuracy:\cc\n",				
+			s:"\nPistol:           \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_PISTOL), s:"%",
+			s:"\n\ccShotgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_SHOTGUN), s:"%",
+			s:"\n\ccSSG:              \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_SSG), s:"%",
+			s:"\n\ccChaingun:         \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_CHAINGUN), s:"%",
+			s:"\n\ccPlasma Rifle:     \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_PLASMA), s:"%",
+			s:"\n\ccRocket Launcher:  \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_RL), s:"%",
+			s:"\n\ccGrenade Launcher: \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_GL), s:"%",
+			s:"\n\ccLightning Gun:    \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_LG), s:"%",
+			s:"\n\ccRailgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_RAILGUN), s:"%",
+			s:"\n\n\ccDamage Dealt:     \ck", d:getPlayerDamageDealt(duelPlayerNumber[1]);
+			HUDMSG_PLAIN, 2, CR_WHITE, 1.0, 0.6, 5.0);			
+		
+		// End player 2 stats		
+	}
+	else
+	{
+		// Player 1 stats
+		HudMessage(n:duelPlayerNumber[0] + 1, s:"'s stats:\n\n\c!Weapon Accuracy:\cc\n",		
+			s:"\nPistol:           \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_PISTOL), s:"%",
+			s:"\n\ccShotgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_SHOTGUN), s:"%",
+			s:"\n\ccSSG:              \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_SSG), s:"%",
+			s:"\n\ccChaingun:         \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_CHAINGUN), s:"%",
+			s:"\n\ccPlasma Rifle:     \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_PLASMA), s:"%",
+			s:"\n\ccRocket Launcher   \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_RL), s:"%",
+			s:"\n\ccGrenade Launcher: \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_GL), s:"%",
+			s:"\n\ccLightning Gun:    \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_LG), s:"%",
+			s:"\n\ccRailgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[0], WEAPON_RAILGUN), s:"%",
+			s:"\n\n\ccDamage Dealt:     \ck", d:getPlayerDamageDealt(duelPlayerNumber[0]);
+			HUDMSG_PLAIN, 1, CR_WHITE, 0.0, 0.6, 5.0);
+			
+		// End player 1 stats
+		
+		// Player 2 stats
+		HudMessage(n:duelPlayerNumber[1] + 1, s:"'s stats:\n\n\c!Weapon Accuracy:\cc\n",				
+			s:"\nPistol:           \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_PISTOL), s:"%",
+			s:"\n\ccShotgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_SHOTGUN), s:"%",
+			s:"\n\ccSSG:              \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_SSG), s:"%",
+			s:"\n\ccChaingun:         \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_CHAINGUN), s:"%",
+			s:"\n\ccPlasma Rifle:     \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_PLASMA), s:"%",
+			s:"\n\ccRocket Launcher:  \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_RL), s:"%",
+			s:"\n\ccGrenade Launcher: \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_GL), s:"%",
+			s:"\n\ccLightning Gun:    \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_LG), s:"%",
+			s:"\n\ccRailgun:          \ck", d:getPlayerWeaponAccuracyPercent(duelPlayerNumber[1], WEAPON_RAILGUN), s:"%",
+			s:"\n\n\ccDamage Dealt:     \ck", d:getPlayerDamageDealt(duelPlayerNumber[1]);
+			HUDMSG_PLAIN, 2, CR_WHITE, 1.0, 0.6, 5.0);			
+		
+		// End player 2 stats	
+	}
+}
+
+SCRIPT "Player Enter Auth" ENTER
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+
+	// Player is already logged in
+	if(playerLoggedIn[PlayerNumber()] || PlayerIsBot(PlayerNumber()))
+	{		
+		terminate;
+	}
+	
+	Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:" entered the arena for the first time. Retrieving authentication key...");
+	
+	// Retrieve auth key from the client
+	str authKey = GetUserCVarString(PlayerNumber(), "pro_authkey");	
+	
+	// No auth key? Register new player
+	if(!StrIcmp(authKey, "pro"))
+	{
+		Log(s:"[PRODUEL-LOGIN] Got no authentication key from ", n:PlayerNumber() + 1, s:", generating a new one...");		
+	
+		str generatedAuthKey = "";
+	
+		do
+		{
+			generatedAuthKey = generateAuthKey();			
+			delay(1);
+			
+		} while(doesAuthKeyExist(generatedAuthKey));
+				
+		Log(s:"[PRODUEL-LOGIN] Authentication key generated for ", n:PlayerNumber() + 1, s:": ", s:generatedAuthKey);
+		
+		// Check if any other auth key has the name of the player associated to it, if it does, don't register it
+		Log(s:"[PRODUEL-LOGIN] Checking name availability for player name ", n:PlayerNumber() + 1, s:"...");
+		
+		if(doesPlayerNameExist(PlayerNumber()))
+		{
+			Log(s:"[PRODUEL-LOGIN] Name ", n:PlayerNumber() + 1, s:" is already registered. Player registration aborted.");
+			terminate;
+		}
+		
+		Log(s:"[PRODUEL-LOGIN] Name ", n:PlayerNumber() + 1, s:" is available.");
+		
+		// Send the auth key to the client to save it
+		Log(s:"[PRODUEL-LOGIN] Sending authentication key to ", n:PlayerNumber() + 1, s:"...");
+		
+		for(int j = AUTH_KEY_LENGTH + 3; j >= 3; j--)
+		{
+			ACS_NamedExecuteAlways("Send Client Auth Key", 0, GetChar(generatedAuthKey, j), PlayerNumber());
+		}
+		
+		ACS_NamedExecuteAlways("Set Client Auth Key", 0, PlayerNumber());
+		
+		Log(s:"[PRODUEL-LOGIN] Authentication key sent to ", n:PlayerNumber() + 1, s:".");
+		Log(s:"[PRODUEL-LOGIN] Initializing ", n:PlayerNumber() + 1, s:"'s player account...");
+		
+		// Register and initialize the player's account
+		initializePlayerAccount(generatedAuthKey, PlayerNumber());
+		
+		Log(s:"[PRODUEL-LOGIN] Player account for ", n:PlayerNumber() + 1, s:" succesfully initialized.");
+				
+		authKey = generatedAuthKey;		
+	}
+	else
+	{
+		Log(s:"[PRODUEL-LOGIN] Retrieved authentication key from ", n:PlayerNumber() + 1, s:": ", s:authKey);
+	
+		// Check if the key is already in use by another player, if it is, ignore the login
+		if(isAuthKeyInUse(authKey))
+		{
+			Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:"'s key is already in use. Login aborted.");
+			terminate;
+		}			
+	}
+	
+	Log(s:"[PRODUEL-LOGIN] Attempting player login for ", n:PlayerNumber() + 1, s:"...");
+	
+	// Log player in here checking if the auth key exists, if it does store the login status and key
+	if(doesAuthKeyExist(authKey))
+	{
+		// Validate the auth key
+		if(!isAuthKeyValid(authKey))
+		{
+			Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:" failed to login: invalid authentication key.");
+			terminate;
+		}
+		
+		playerLoggedIn[PlayerNumber()] = true;
+		playerAuthKey[PlayerNumber()] = authKey;
+		
+		Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:" successfully logged in as ", s:getPlayerAccName(PlayerNumber()));
+		terminate;
+	}
+	else
+	{
+		// Is the key valid? If it is, register it on the server
+		// This allows for cross-server user auth without needing different keys per server
+		if(isAuthKeyValid(authKey))
+		{
+			Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:"'s key is valid but it isn't registered. Checking name availability...");
+			
+			// Check if the player name is already in use
+			if(doesPlayerNameExist(PlayerNumber()))
+			{
+				Log(s:"[PRODUEL-LOGIN] Name ", n:PlayerNumber() + 1, s:" is already registered. Player registration aborted.");
+				terminate;
+			}
+			
+			Log(s:"[PRODUEL-LOGIN] Name ", n:PlayerNumber() + 1, s:" is available. Initializing player account...");
+			
+			// Initialize the player's account
+			initializePlayerAccount(authKey, PlayerNumber());
+			
+			Log(s:"[PRODUEL-LOGIN] Player account for ", n:PlayerNumber() + 1, s:" succesfully initialized. Attempting login now...");
+			
+			// Check if the key exists now (if the player's account was succesfully initialized)
+			if(doesAuthKeyExist(authKey))
+			{
+				playerLoggedIn[PlayerNumber()] = true;
+				playerAuthKey[PlayerNumber()] = authKey;
+				
+				Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:" successfully logged in as ", s:getPlayerAccName(PlayerNumber()));
+				terminate;			
+			}
+			else
+			{
+				Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:" failed to login: unknown authentication key.");
+			}
+		}
+		else
+		{
+			// The key is not valid, reset it on the client
+			ACS_NamedExecuteAlways("Reset Client Auth Key", 0, PlayerNumber());
+			ACS_NamedExecuteAlways("Set Client Auth Key", 0, PlayerNumber());
+			Log(s:"[PRODUEL-LOGIN] ", n:PlayerNumber() + 1, s:" failed to login: invalid authentication key.");
+		}
+	}	
+}
+
+SCRIPT "Main Stats System Loop" OPEN
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+	
+	// Check for player disconnects here
+	while(true)
+	{
+		// If our implementation of weapon drop is enabled, disable original weapon drop
+		if(GetCVar("pro_dropweapons") && GetCVar("sv_weapondrop"))
+		{
+			ConsoleCommand("sv_weapondrop 0");
+		}
+		
+		// Force degeneration to off, we implement this on our own
+		if(GetCVar("sv_degeneration"))
+		{
+			ConsoleCommand("sv_degeneration 0");
+		}
+		
+		for(int i = 0; i < 64; i++)
+		{
+			if(playerLoggedIn[i])
+			{
+				// If the player isn't in the game, log him off
+				if(!PlayerInGame(i) && !PlayerIsSpectator(i))
+				{
+					Log(s:"[PRODUEL-STATS] Player with authentication key (", s:playerAuthKey[i], s:") disconnected. Session data removed.");
+					
+					playerLoggedIn[i] = false;
+					playerAuthKey[i] = "";
+					
+					continue;
+				}
+			}
+		}
+		
+		delay(1);
+	}
+}
+
+SCRIPT "Player Connected" OPEN CLIENTSIDE
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+
+	ConsoleCommand("pukename DisplayLeaderboards \x22always\x22 -1 0");
+}
+
+SCRIPT "Reset Client Auth Key" (int pNumber) CLIENTSIDE
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+	
+	if(ConsolePlayerNumber() != pNumber)
+	{
+		terminate;
+	}	
+	
+	SetCVarString("pro_authkey", "pro");
+	ConsoleCommand("pro_authkey pro");
+}
+
+SCRIPT "Send Client Auth Key" (int keyChar, int pNumber) CLIENTSIDE
+{
+	if(!IsNetworkGame())
+	{
+		terminate;
+	}
+	
+	if(GetCVar("duel") == 0)
+	{
+		terminate;
+	}
+	
+	if(ConsolePlayerNumber() != pNumber)
+	{
+		terminate;
+	}	
+	
+	str actualKey = GetCVarString("pro_authkey");
+	str authKey = StrParam(s:actualKey, c:keyChar);	
+	SetCVarString("pro_authkey", authKey);
+}
+
+SCRIPT "Set Client Auth Key" (int pNumber) CLIENTSIDE
+{
+	if(ConsolePlayerNumber() != pNumber)
+	{
+		terminate;
+	}
+
+	delay(35);
+	str consoleCmd = StrParam(s:"pro_authkey ", s:GetCVarString("pro_authkey"));
+	ConsoleCommand("pro_authkey setting...");
+	delay(35);
+	ConsoleCommand(consoleCmd);
+}
+
+//=============================
+// Armor System
+//============================
+
+SCRIPT "Stack Armor" (int amount)
+{
+	int armorAmount = CheckInventory("Armor");
+
+	if(armorAmount <= 0)
+	{
+		GiveInventory("ProArmor", 1);
+		TakeInventory("Armor", 99);
+		GiveInventory("ArmorBonus", amount - 1);
+		terminate;
+	}
+	
+	GiveInventory("ArmorBonus", amount);
+}

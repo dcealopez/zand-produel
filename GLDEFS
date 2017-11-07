@@ -1,0 +1,193 @@
+//==============
+//RailGun
+//==============
+
+brightmap sprite RLGNA0
+{
+	map "BRIGHTMAPS/RLGNA0"
+	disablefullbright
+}
+
+brightmap sprite RLGNB0
+{
+	map "BRIGHTMAPS/RLGNB0"
+	disablefullbright
+}
+
+brightmap sprite RLGNC0
+{
+	map "BRIGHTMAPS/RLGNC0"
+	disablefullbright
+}
+
+// Rockets
+object RocketE
+{
+    frame MISLA { light ROCKET    }
+
+    frame MISLB { light ROCKET_X1 }
+    frame MISLC { light ROCKET_X2 }
+    frame MISLD { light ROCKET_X3 }
+}
+
+// PlasmaBall
+object PlasmaBallE
+{
+    frame PLSSA { light PLASMABALL }
+    frame PLSSB { light PLASMABALL }
+
+    frame PLSEA { light PLASMA_X1 }
+    frame PLSEB { light PLASMA_X2 }
+    frame PLSEC { light PLASMA_X2 }
+    frame PLSED { light PLASMA_X3 }
+    frame PLSEE { light PLASMA_X4 }
+}
+
+// BFG BallE
+object BFGBallE
+{
+    frame BFS1A { light BFGBALL }
+    frame BFS1B { light BFGBALL }
+
+    frame BFE1A { light BFGBALL_X1 }
+    frame BFE1B { light BFGBALL_X2 }
+    frame BFE1C { light BFGBALL_X3 }
+    frame BFE1D { light BFGBALL_X1 }
+    frame BFE1E { light BFGBALL_X4 }
+    frame BFE1F { light BFGBALL_X5 }
+	
+	
+	frame BFBRA { light REDBFGBALL }
+    frame BFBRB { light REDBFGBALL }
+
+    frame BFERA { light RBFGBALL_X1 }
+    frame BFERB { light RBFGBALL_X2 }
+    frame BFERC { light RBFGBALL_X3 }
+    frame BFERD { light RBFGBALL_X1 }
+    frame BFERE { light RBFGBALL_X4 }
+    frame BFERF { light RBFGBALL_X5 }
+	
+	
+	frame BFBBA { light BLUEBFGBALL }
+    frame BFBBB { light BLUEBFGBALL }
+
+    frame BFEBA { light BBFGBALL_X1 }
+    frame BFEBB { light BBFGBALL_X2 }
+    frame BFEBC { light BBFGBALL_X3 }
+    frame BFEBD { light BBFGBALL_X1 }
+    frame BFEBE { light BBFGBALL_X4 }
+    frame BFEBF { light BBFGBALL_X5 }
+}
+
+// Grenades
+pointlight RUSTGREN
+{
+    color 1.0 0.7 0.0
+    size 32
+}
+
+object GrenadeE
+{
+    frame SGRNA { light RUSTGREN    }
+
+    frame MISLB { light ROCKET_X1 }
+    frame MISLC { light ROCKET_X2 }
+    frame MISLD { light ROCKET_X3 }
+}
+
+
+// ArmorBonus x5
+pulselight ARMORBONUS5
+{
+    color 0.6 0.0 0.0
+    size 16
+    secondarySize 14
+    interval 1.0
+	dontlightself 1
+}
+
+object ArmorBonus5
+{
+    frame BNS2 { light ARMORBONUS5 }
+}
+
+// HealthBonus X5
+object HealthBonus5
+{
+    frame BNS1 { light HEALTHPOTION }
+}
+
+// Green / Blue Givers
+object GreenGiver
+{
+    frame ARM1A { light GREENARMOR1 }
+    frame ARM1B { light GREENARMOR2 }
+}
+
+object BlueGiver
+{
+    frame ARM2C { light BLUEARMOR1 }
+    frame ARM2D { light BLUEARMOR2 }
+}
+
+object BlueArmorS
+{
+    frame ARM2C { light BLUEARMOR1 }
+    frame ARM2D { light BLUEARMOR2 }
+}
+
+// YellowArmor
+pointlight YELLOWARMOR1
+{
+    color 0.6 0.6 0.0
+    size 48
+}
+
+pointlight YELLOWARMOR2
+{
+    color 0.6 0.6 0.0
+    size 32
+}
+
+object YellowArmor
+{
+    frame ARM3A { light YELLOWARMOR1 }
+    frame ARM3B { light YELLOWARMOR2 }
+}
+
+object YellowGiver
+{
+    frame ARM3A { light YELLOWARMOR1 }
+    frame ARM3B { light YELLOWARMOR2 }
+}
+
+// RedArmor
+pointlight REDARMOR1
+{
+    color 0.6 0.0 0.0
+    size 48
+}
+
+pointlight REDARMOR2
+{
+    color 0.6 0.0 0.0
+    size 32
+}
+
+object RedArmor
+{
+    frame ARM4A { light REDARMOR1 }
+	frame ARM4B { light REDARMOR2 }
+}
+
+object RedGiver
+{
+    frame ARM4A { light REDARMOR1 }
+	frame ARM4B { light REDARMOR2 }
+}
+
+// Player
+object DoomerE
+{
+    frame PLAYF { light ZOMBIEATK }
+}

@@ -1,0 +1,15 @@
+[en enu default]
+OB_MPBFG_BOOM = "%k \cc> \ciBFG \cc> %o";
+OB_MPBFG_SPLASH = "%k \cc> \ciBFG \cc> %o";
+OB_MPTELEFRAG = "%k \cc> \ciTelefrag \cc> %o";
+OB_SUICIDE = "%o \ccsuicided";
+OB_FALLING = "%o \ccsuicided";
+OB_CRUSH = "%o \ccsuicided";
+OB_EXIT = "%o \ccsuicided";
+OB_WATER = "%o \ccsuicided";
+OB_SLIME = "%o \ccsuicided";
+OB_LAVA = "%o \ccsuicided";
+OB_BARREL = "%o \ccsuicided";
+OB_SPLASH = "%o \ccsuicided";
+OB_KILLEDSELF = "%o \ccsuicided";
+OB_DEFAULT = "%o \ccsuicided";

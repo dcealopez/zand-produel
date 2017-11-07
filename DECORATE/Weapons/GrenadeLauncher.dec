@@ -1,0 +1,147 @@
+// Grenade Launcher
+ACTOR GrenadeLE : DoomWeapon 25019
+{
+	SpawnID 156
+	Height 25
+	Radius 20
+	+NOAUTOAIM
+	Weapon.SelectionOrder 2600
+	Weapon.SlotNumber 0
+	Weapon.SlotPriority 0
+	Weapon.AmmoType "GrenadeAmmo"
+	Weapon.AmmoGive 4
+	Weapon.AmmoUse 1
+	Obituary "%k \cc> \ciGrenade Launcher \cc> %o"
+	+INVENTORY.IGNORESKILL
+	Inventory.PickupMessage "You got the grenade launcher!"
+	Tag "Grenade Launcher"
+	-DROPPED
+	Inventory.RespawnTics 125
+	States
+	{
+		Ready:
+			GRLR B 1 A_WeaponReady
+			Loop
+
+		Deselect:
+			GRLR B 0 A_Lower
+			GRLR B 0 A_Lower
+			GRLR B 1 A_Lower
+			Loop
+
+		Select:
+			GRLR B 0 A_StopSound(7)
+			GRLR B 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			
+		SelectLoop:
+			GRLR B 0 A_Raise
+			GRLR B 0 A_Raise
+			GRLR B 1 A_Raise
+			Loop
+
+		Fire:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Weapon Shot", 0, 10)
+			GRLR C 2 A_GunFlash
+			GRLR D 2 A_FireCustomMissile("GrenadeE", 0, true, 0, 0, 0, 6.328125)
+			GRLR EF 3
+			GRLR B 10
+			GRLR F 0 A_ReFire  
+			Goto Ready
+
+		Flash:
+			TNT1 A 3 Bright A_Light1
+			TNT1 A 4 Bright
+			Goto LightDone
+
+		Spawn:
+			GRLR A -1
+			Stop
+	}
+}
+
+// Dropped Grenade Launcher
+ACTOR DGrenadeLE : CustomInventory
+{
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "You got the grenade launcher!"
+	Inventory.PickupSound "misc/w_pkup"
+	States
+	{
+		Spawn:
+			GRLR A 175
+		SpawnLoop:		
+			GRLR A 7 A_FadeOut
+			Loop
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_GiveInventory("GrenadeLE")
+			Stop
+	}
+}
+
+// Grenade
+ACTOR GrenadeE : Grenade
+{
+	+SEEKERMISSILE
+	Radius 4
+	Height 4
+	Speed 28
+	Damage (15)
+	Gravity .7
+	BounceFactor .8
+	WallBounceFactor .8
+	SeeSound "grshoot"
+	BounceSound "weapons/grbnce"
+	DeathSound "weapons/rocklx"
+	Obituary "%k \cc> \ciGrenade Launcher \cc> %o"
+	States
+	{
+		Death:
+			TNT1 A 0 A_ChangeFlag("NOBLOCKMAP", 0)
+			TNT1 A 0 A_ChangeFlag("NOINTERACTION", 1)
+			TNT1 A 0 A_Stop
+			TNT1 A 0 A_SeekerMissile(0, 0, SMF_LOOK | SMF_CURSPEED, 256)
+			TNT1 A 0 A_JumpIfTargetInLOS("XDeathM", 360, JLOSF_PROJECTILE, 116)
+			Goto DeathCont
+			
+		XDeath:
+			TNT1 A 0 ACS_NamedExecute("Hit Marker Sound", 0, 1, 2, 10)
+			Goto DeathCont
+			
+		XDeathM:
+			TNT1 A 0 ACS_NamedExecute("Hit Marker Sound", 0, 1, 1, 10)
+			Goto DeathCont	
+			
+		DeathCont:
+			TNT1 A 0 A_ChangeFlag("NOGRAVITY", 1)
+			TNT1 A 0 A_Stop
+			TNT1 A 0 Bright A_SetDamageType("RocketJump")
+			TNT1 A 0 Bright A_Explode(48, 128)
+			TNT1 A 0 Bright A_SetDamageType("Normal")
+			TNT1 A 0 Bright A_Explode(50, 128, 0, 0, 8)
+			MISL B 8 Bright A_Explode(50, 128, 1, 0, 8)
+			MISL C 6 Bright
+			MISL D 4 Bright
+			Stop
+	}
+}
+
+// GrenadeAmmo
+ACTOR GrenadeAmmo : Ammo 25020
+{
+	Height 25
+	Radius 20
+	Inventory.PickupMessage "Picked up grenades."
+	Inventory.Amount 5
+	Inventory.MaxAmount 25
+	Inventory.Icon "GRENA0"
+	Ammo.BackpackAmount 5
+	Ammo.BackpackMaxAmount 100
+	States
+	{
+		Spawn:
+			GREN B -1
+			Stop
+	}
+}

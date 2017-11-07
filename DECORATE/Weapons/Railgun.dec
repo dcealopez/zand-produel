@@ -1,0 +1,149 @@
+// Railgun
+ACTOR Railgun : DoomWeapon 5012
+{
+	SpawnID 164
+	+NOAUTOAIM
+	Height 25
+	Radius 20
+	Decal RailScorchLower
+	Attacksound "railshot"
+	Weapon.AmmoUse 1
+	Weapon.AmmoGive 4
+	Weapon.AmmoType "RailAmmo"
+	+INVENTORY.IGNORESKILL
+	Weapon.SelectionOrder 600
+	Weapon.SlotPriority 0
+	Weapon.SlotNumber 9
+	Weapon.Kickback 50
+	Inventory.PickupMessage "You got the railgun!"
+	Tag "Rail Gun"
+	-DROPPED
+	Inventory.RespawnTics 125
+	Obituary "%k \cc> \ciRailgun \cc> %o"
+	States
+	{
+		Ready:
+			RLGN A 0 A_StopSound(6)
+			RLGN A 0 A_PlaySound("rgidle", 6, 0.07, 1, 1.15)
+			Goto ReadyLoop
+			
+		ReadyLoop:
+			RLGN ABC 6 A_WeaponReady
+			Loop
+
+		Deselect:
+			RLGN A 0 A_StopSound(6)
+			RLGN A 0 A_Lower
+			RLGN A 0 A_Lower
+			RLGN A 1 A_Lower
+			Loop
+
+		Select:
+			RLGN A 0 A_StopSound(7)
+			RLGN A 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			
+		SelectLoop:
+			RLGN A 0 A_StopSound(6)
+			RLGN A 0 A_Raise
+			RLGN A 0 A_Raise
+			RLGN A 1 A_Raise
+			Loop
+
+		Fire:
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Weapon Shot", 0, 8)
+			TNT1 A 0 A_GunFlash
+			RLGN D 2 Bright A_RailAttack(90, 0, 1, "0000FF", "FFFFFF", 0, 0, "RailPuff", 0, 0, 0, 35, 1.5, 1.0, "RailTrail")
+			RLGN EFJG 2
+			RLGN G 40
+			Goto Ready
+
+		Flash:
+			RLGN H 2 Bright A_Light1
+			RLGN I 2 Bright A_Light2
+			Goto LightDone
+
+		Spawn:
+			RLGS A -1
+			Stop
+	}
+}
+ 
+// Dropped Grenade Launcher
+ACTOR DRailgun : CustomInventory
+{
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "You got the railgun!"
+	Inventory.PickupSound "misc/w_pkup"
+	States
+	{
+		Spawn:
+			RLGS A 175
+		SpawnLoop:		
+			RLGS A 7 A_FadeOut
+			Loop
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_GiveInventory("Railgun")
+			Stop
+	}
+}
+ 
+// RailAmmo
+ACTOR RailAmmo : Ammo 25016
+{
+	Height 25
+	Radius 20
+	Inventory.PickupMessage "Picked up slugs."
+	Inventory.Amount 5
+	Inventory.MaxAmount 15
+	Inventory.Icon "RAILA0"
+	Ammo.BackpackAmount 5
+	Ammo.BackpackMaxAmount 100
+	States
+	{
+		Spawn:
+			RAIL B -1
+			Stop
+	}
+}
+ 
+// Railgun Trail
+ACTOR RailTrail
+{
+	+CLIENTSIDEONLY
+	+NOBLOCKMAP
+	+NOGRAVITY
+	+NOINTERACTION
+	RenderStyle Add
+	Alpha 0.5
+	Scale 0.25
+	States
+	{
+		Spawn:
+			RLCL C 2 Bright A_FadeTo(0.1,0.05, TRUE)
+			Loop
+	}
+}
+
+// Railgun puff
+ACTOR RailPuff : HBulletPuff
+{
+    States
+    {
+		Spawn:
+			TNT1 A 0
+			Stop
+		Death:
+			TNT1 A 0
+			Stop
+		Melee:
+			TNT1 A 0
+			Stop
+		Crash:
+			TNT1 A 0
+			Stop		
+        XDeath:
+            TNT1 A 1 ACS_NamedExecute("Hit Marker Sound", 0, 1, 2)
+            Stop
+    }
+}

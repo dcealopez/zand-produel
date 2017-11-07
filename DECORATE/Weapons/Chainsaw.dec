@@ -1,0 +1,51 @@
+// Chainsaw
+ACTOR ChainsawE : Chainsaw Replaces Chainsaw
+{
+	Weapon.SlotNumber 1
+	Weapon.ReadySound "silent"
+	Weapon.UpSound "decayup"
+	-DROPPED
+	Inventory.RespawnTics 125
+	Obituary "%k \cc> \ciChainsaw \cc> %o"
+	States
+	{
+		Ready:
+			SAWG D 4 A_WeaponReady
+			Loop
+
+		Deselect:
+			SAWG C 0 A_Lower
+			SAWG C 0 A_Lower
+			SAWG C 1 A_Lower
+			Loop
+
+		Select:
+			SAWG C 0 A_StopSound(7)
+			SAWG C 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			SelectLoop:
+			SAWG C 0 A_Raise
+			SAWG C 0 A_Raise
+			SAWG C 1 A_Raise
+			Loop
+
+		Fire:
+			SAWG AB 2 A_Saw ("decayms", "decayht", 5, "MPuff")
+			SAWG B 0 A_ReFire
+			Goto Ready
+
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			CSAW A 10
+
+		Rotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("End_Rotate")
+			RTCS A 3 A_SetAngle(angle + 22.5)
+			Loop
+
+		NoRotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			CSAW A 3
+			Loop
+	}
+}

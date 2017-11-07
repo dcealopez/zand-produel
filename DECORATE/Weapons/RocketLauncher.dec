@@ -1,0 +1,111 @@
+// RocketLauncher
+ACTOR RocketLauncherE : RocketLauncher Replaces RocketLauncher
+{
+	Weapon.SlotNumber 5
+	Weapon.SlotPriority 0
+	Weapon.AmmoGive 4
+	Obituary "%k \cc> \ciRocket Launcher \cc> %o"
+	+NOAUTOAIM
+	+INVENTORY.IGNORESKILL
+	-DROPPED
+	Inventory.RespawnTics 125
+	States
+	{
+		Deselect:
+			MISG A 0 A_Lower
+			MISG A 0 A_Lower
+			MISG A 1 A_Lower
+			Loop
+
+		Select:
+			MISG A 0 A_StopSound(7)
+			MISG A 0 A_PlaySound("wpncg", 7, 1, 0, 1.2)
+			
+		SelectLoop:
+			MISG A 0 A_Raise
+			MISG A 0 A_Raise
+			MISG A 1 A_Raise
+			Loop
+
+		Fire:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Register Weapon Shot", 0, 9)
+			MISG B 3 A_GunFlash
+			MISG B 20 A_FireMissile
+			MISG B 0 A_ReFire
+			Goto Ready
+
+		Spawn:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			LAUN A 10
+			Loop
+
+		Rotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("End_Rotate")
+			RTRL A 3 A_SetAngle(angle + 22.5)
+			Loop
+
+		NoRotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			LAUN A 3
+			Loop
+	}
+}
+
+// Dropped Rocket Launcher
+ACTOR DRocketLauncherE : CustomInventory
+{
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "$GOTLAUNCHER"
+	Inventory.PickupSound "misc/w_pkup"
+	States
+	{
+		Spawn:
+			LAUN A 175
+		SpawnLoop:		
+			LAUN A 7 A_FadeOut
+			Loop
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_GiveInventory("RocketLauncherE")
+			Stop
+	}
+}
+
+// Rocket
+ACTOR RocketE : Rocket Replaces Rocket
+{
+	+SEEKERMISSILE
+	Decal Scorch
+	Speed 29.5
+	Radius 4
+	Height 4
+	Damage (15)
+	Obituary "%k \cc> \ciRocket Launcher \cc> %o"
+	States
+	{
+		Death:
+			TNT1 A 0 A_ChangeFlag("NOBLOCKMAP", 0)
+			TNT1 A 0 A_ChangeFlag("NOINTERACTION", 1)
+			TNT1 A 0 A_Stop
+			TNT1 A 0 A_SeekerMissile(0, 0, SMF_LOOK | SMF_CURSPEED, 256)
+			TNT1 A 0 A_JumpIfTargetInLOS("XDeathM", 360, JLOSF_PROJECTILE, 116)
+			Goto DeathCont
+		XDeath:
+			TNT1 A 0 ACS_NamedExecute("Hit Marker Sound", 0, 1, 2, 9)
+			Goto DeathCont
+		XDeathM:
+			TNT1 A 0 ACS_NamedExecute("Hit Marker Sound", 0, 1, 1, 9)
+			Goto DeathCont
+		DeathCont:
+			TNT1 A 0 Bright A_SetDamageType("RocketJump")
+			TNT1 A 0 Bright A_Explode(88, 88)
+			TNT1 A 0 Bright A_SetDamageType("Normal")
+			TNT1 A 0 Bright A_Explode(50, 88, 0, 0, 12)
+			MISL B 8 Bright A_Explode(50, 88, 1, 0, 12)
+			MISL C 6 Bright
+			MISL D 4 Bright
+			Stop
+	}
+}
