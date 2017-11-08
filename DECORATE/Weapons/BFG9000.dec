@@ -4,6 +4,7 @@ ACTOR BFGE : BFG9000 Replaces BFG9000
 	Weapon.AmmoType "BFGCELLPRO"	
 	Weapon.AmmoGive 160
 	Weapon.SlotNumber 7
+	+INVENTORY.ALWAYSPICKUP
 	-DROPPED
 	Inventory.RespawnTics 2100
 	Obituary "$OB_MPBFG_SPLASH"

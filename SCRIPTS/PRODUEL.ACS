@@ -26,6 +26,16 @@
 
 #define AUTH_KEY_LENGTH				61
 
+// Ammo defs
+#define	AMMO_CLIP					0
+#define AMMO_SHELL					1
+#define AMMO_ROCKET					2
+#define AMMO_GRENADE				3
+#define AMMO_PLASMA					4
+#define AMMO_LGUN					5
+#define AMMO_RAIL					6
+#define AMMO_BFG					7
+
 // HP tracker
 int hp[64][2];
 int playerSuicides[64][2];
@@ -485,12 +495,12 @@ function int getWeaponIdByClassName(str className) {
 		return WEAPON_CHAINGUN;
 	}
 	
-	if(!StrIcmp(className, "LGunE"))
+	if(!StrIcmp(className, "LGunEE"))
 	{
 		return WEAPON_LG;
 	}
 	
-	if(!StrIcmp(className, "Railgun"))
+	if(!StrIcmp(className, "RailgunE"))
 	{
 		return WEAPON_RAILGUN;
 	}
@@ -500,7 +510,7 @@ function int getWeaponIdByClassName(str className) {
 		return WEAPON_RL;
 	}
 	
-	if(!StrIcmp(className, "GrenadeLE"))
+	if(!StrIcmp(className, "GrenadeLEE"))
 	{
 		return WEAPON_GL;
 	}
@@ -516,6 +526,41 @@ function int getWeaponIdByClassName(str className) {
 	}
 	
 	return WEAPON_OTHER;
+}
+
+function str getWeaponClassNameById(int id) {
+	
+	switch(id)
+	{
+		case WEAPON_FIST:
+			return "FistE";
+		case WEAPON_CHAINSAW:
+			return "ChainsawE";
+		case WEAPON_PISTOL:
+			return "PistolE";
+		case WEAPON_SHOTGUN:
+			return "ShotgunE";
+		case WEAPON_SSG:
+			return "SuperShotgunE";
+		case WEAPON_CHAINGUN:
+			return "ChaingunE";
+		case WEAPON_LG:
+			return "LGunEE";
+		case WEAPON_RAILGUN:
+			return "RailgunE";
+		case WEAPON_RL:
+			return "RocketLauncherE";
+		case WEAPON_GL:
+			return "GrenadeLEE";
+		case WEAPON_PLASMA:
+			return "PlasmaRifleE";
+		case WEAPON_BFG:
+			return "BFGE";
+		default:
+			return "Unknown";
+	}
+	
+	return "Unknown";
 }
 
 function bool isWeaponDroppable(str className) {
@@ -535,12 +580,12 @@ function bool isWeaponDroppable(str className) {
 		return true;
 	}
 	
-	if(!StrIcmp(className, "LGunE"))
+	if(!StrIcmp(className, "LGunEE"))
 	{
 		return true;
 	}
 	
-	if(!StrIcmp(className, "Railgun"))
+	if(!StrIcmp(className, "RailgunE"))
 	{
 		return true;
 	}
@@ -550,7 +595,7 @@ function bool isWeaponDroppable(str className) {
 		return true;
 	}
 	
-	if(!StrIcmp(className, "GrenadeLE"))
+	if(!StrIcmp(className, "GrenadeLEE"))
 	{
 		return true;
 	}
@@ -1826,7 +1871,7 @@ SCRIPT "Set Client Auth Key" (int pNumber) CLIENTSIDE
 
 //=============================
 // Armor System
-//============================
+//=============================
 
 SCRIPT "Stack Armor" (int amount)
 {
@@ -1841,4 +1886,54 @@ SCRIPT "Stack Armor" (int amount)
 	}
 	
 	GiveInventory("ArmorBonus", amount);
+}
+
+//=============================
+// Ammo giving system
+//=============================
+
+function str getAmmoNameWeaponUses(int id) {
+
+	switch(id)
+	{
+		case WEAPON_PISTOL:
+		case WEAPON_CHAINGUN:
+			return "Clip";
+		case WEAPON_SHOTGUN:
+		case WEAPON_SSG:
+			return "Shell";
+		case WEAPON_RL:
+			return "RocketAmmo";
+		case WEAPON_GL:
+			return "GrenadeAmmo";
+		case WEAPON_PLASMA:
+			return "Cell";
+		case WEAPON_LG:
+			return "LightningAmmo";
+		case WEAPON_RAILGUN:
+			return "RailAmmo";
+		case WEAPON_BFG:
+			return "BFGCELLPRO";
+		default:
+			return "Unknown";
+	}
+	
+	return "Unknown";
+}
+
+SCRIPT "Give Weapon Ammo" (int weaponId, int amount, int set)
+{
+	int currentAmmo = CheckInventory(getAmmoNameWeaponUses(weaponId));
+	int ammoToGive = currentAmmo + amount;
+
+	TakeInventory(getAmmoNameWeaponUses(weaponId), currentAmmo - 1);
+	
+	if(currentAmmo <= 0)
+	{
+		GiveInventory(getAmmoNameWeaponUses(weaponId), ammoToGive);
+	}
+	else
+	{
+		GiveInventory(getAmmoNameWeaponUses(weaponId), ammoToGive - 1);
+	}	
 }

@@ -6,7 +6,7 @@ ACTOR DoomerE : DoomPlayer Replaces DoomPlayer
 	Player.StartItem "FistE"
 	Player.WeaponSlot 2, "PistolE"
 	Player.StartItem "Clip", 50
-	Player.WeaponSlot 0, GrenadeLE
+	Player.WeaponSlot 0, GrenadeLEE
 	Player.WeaponSlot 1, FistE, ChainsawE
 	Player.WeaponSlot 2, PistolE
 	Player.WeaponSlot 3, ShotgunE, SuperShotgunE
@@ -14,8 +14,8 @@ ACTOR DoomerE : DoomPlayer Replaces DoomPlayer
 	Player.WeaponSlot 5, RocketLauncherE
 	Player.WeaponSlot 6, PlasmaRifleE
 	Player.WeaponSlot 7, BFGE
-	Player.WeaponSlot 8, LGunE
-	Player.WeaponSlot 9, Railgun	
+	Player.WeaponSlot 8, LGunEE
+	Player.WeaponSlot 9, RailgunE
 	DamageFactor "Knockout", 5.0
 	DamageFactor "RocketJump", 0.0
 	DamageFactor "PlasmaJump", 0.25

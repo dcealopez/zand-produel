@@ -1,5 +1,5 @@
 // RocketLauncher
-ACTOR RocketLauncherE : RocketLauncher Replaces RocketLauncher
+ACTOR RocketLauncherE : RocketLauncher 
 {
 	Weapon.SlotNumber 5
 	Weapon.SlotPriority 0
@@ -53,23 +53,48 @@ ACTOR RocketLauncherE : RocketLauncher Replaces RocketLauncher
 	}
 }
 
-// Dropped Rocket Launcher
-ACTOR DRocketLauncherE : CustomInventory
+// Rocket Launcher Pickup
+ACTOR PRocketLauncher : CustomInventory Replaces RocketLauncher
 {
+	+INVENTORY.IGNORESKILL
 	+INVENTORY.ALWAYSPICKUP
+	-DROPPED
+	Inventory.RespawnTics 125
 	Inventory.PickupMessage "$GOTLAUNCHER"
 	Inventory.PickupSound "misc/w_pkup"
 	States
 	{
 		Spawn:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			LAUN A 10
+			Loop
+			
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_JumpIfInventory("RocketLauncherE", 1, "Repickup")
+			TNT1 A 0 A_GiveInventory("RocketLauncherE", 1)
+			TNT1 A 0 A_TakeInventory("RocketAmmo", 999)
+			TNT1 A 0 ACS_NamedExecuteAlways("Give Weapon Ammo", 0, 9, 10)
+			Stop
+		Repickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Give Weapon Ammo", 0, 9, 5)
+			Stop
+	}
+}
+
+// Dropped Rocket Launcher
+ACTOR DRocketLauncherE : PRocketLauncher
+{
+	States
+	{
+		Spawn:
 			LAUN A 175
+			
 		SpawnLoop:		
 			LAUN A 7 A_FadeOut
 			Loop
-		Pickup:
-			TNT1 A 0
-			TNT1 A 0 A_GiveInventory("RocketLauncherE")
-			Stop
 	}
 }
 

@@ -1,7 +1,6 @@
 // Grenade Launcher
-ACTOR GrenadeLE : DoomWeapon 25019
+ACTOR GrenadeLEE : DoomWeapon 
 {
-	SpawnID 156
 	Height 25
 	Radius 20
 	+NOAUTOAIM
@@ -60,12 +59,38 @@ ACTOR GrenadeLE : DoomWeapon 25019
 	}
 }
 
-// Dropped Grenade Launcher
-ACTOR DGrenadeLE : CustomInventory
+ACTOR GrenadeLE : CustomInventory 25019
 {
+	SpawnID 156
+	SpawnID 155
+	+INVENTORY.IGNORESKILL
 	+INVENTORY.ALWAYSPICKUP
+	-DROPPED
+	Inventory.RespawnTics 125
 	Inventory.PickupMessage "You got the grenade launcher!"
 	Inventory.PickupSound "misc/w_pkup"
+	States
+	{
+		Spawn:
+			GRLR A -1
+			Stop			
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_JumpIfInventory("GrenadeLEE", 1, "Repickup")
+			TNT1 A 0 A_GiveInventory("GrenadeLEE", 1)
+			TNT1 A 0 A_TakeInventory("GrenadeAmmo", 999)
+			TNT1 A 0 ACS_NamedExecuteAlways("Give Weapon Ammo", 0, 10, 10)
+			Stop
+		Repickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Give Weapon Ammo", 0, 10, 5)
+			Stop
+	}	
+}
+
+// Dropped Grenade Launcher
+ACTOR DGrenadeLE : GrenadeLE
+{
 	States
 	{
 		Spawn:
@@ -73,10 +98,6 @@ ACTOR DGrenadeLE : CustomInventory
 		SpawnLoop:		
 			GRLR A 7 A_FadeOut
 			Loop
-		Pickup:
-			TNT1 A 0
-			TNT1 A 0 A_GiveInventory("GrenadeLE")
-			Stop
 	}
 }
 
@@ -137,7 +158,7 @@ ACTOR GrenadeAmmo : Ammo 25020
 	Inventory.MaxAmount 25
 	Inventory.Icon "GRENA0"
 	Ammo.BackpackAmount 5
-	Ammo.BackpackMaxAmount 100
+	Ammo.BackpackMaxAmount 25
 	States
 	{
 		Spawn:

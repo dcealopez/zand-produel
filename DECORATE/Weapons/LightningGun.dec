@@ -1,7 +1,6 @@
 // Lightning Gun
-ACTOR LGunE : DoomWeapon 25017
+ACTOR LGunEE : DoomWeapon
 {
-	SpawnID 155
 	Height 25
 	Radius 20
 	+Weapon.NOAUTOAIM
@@ -72,12 +71,38 @@ ACTOR LGunE : DoomWeapon 25017
 	}
 }
 
-// Dropped Grenade Launcher
-ACTOR DLGunE : CustomInventory
+ACTOR LGunE : CustomInventory 25017
 {
+	SpawnID 155
+	+INVENTORY.IGNORESKILL
 	+INVENTORY.ALWAYSPICKUP
+	-DROPPED
+	Inventory.RespawnTics 125
 	Inventory.PickupMessage "You got the lightning gun!"
 	Inventory.PickupSound "misc/w_pkup"
+	States
+	{
+		Spawn:
+			LGGN A -1
+			Stop			
+		Pickup:
+			TNT1 A 0
+			TNT1 A 0 A_JumpIfInventory("LGunEE", 1, "Repickup")
+			TNT1 A 0 A_GiveInventory("LGunEE", 1)
+			TNT1 A 0 A_TakeInventory("LightningAmmo", 999)
+			TNT1 A 0 ACS_NamedExecuteAlways("Give Weapon Ammo", 0, 7, 100)
+			Stop
+		Repickup:
+			TNT1 A 0
+			TNT1 A 0 ACS_NamedExecuteAlways("Give Weapon Ammo", 0, 7, 50)
+			Stop
+	}
+}
+
+
+// Dropped Grenade Launcher
+ACTOR DLGunEE : LGunE
+{
 	States
 	{
 		Spawn:
@@ -85,10 +110,6 @@ ACTOR DLGunE : CustomInventory
 		SpawnLoop:		
 			LGGN A 7 A_FadeOut
 			Loop
-		Pickup:
-			TNT1 A 0
-			TNT1 A 0 A_GiveInventory("LGunE")
-			Stop
 	}
 }
 
@@ -102,7 +123,7 @@ ACTOR LightningAmmo : Ammo 25018
 	Inventory.MaxAmount 200
 	Inventory.Icon "BOLTA0"
 	Ammo.BackpackAmount 50
-	Ammo.BackpackMaxAmount 600
+	Ammo.BackpackMaxAmount 200
 	States
 	{
 		Spawn:
