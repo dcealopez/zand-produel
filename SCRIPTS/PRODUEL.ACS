@@ -1776,6 +1776,12 @@ SCRIPT "Main Stats System Loop" OPEN
 			ConsoleCommand("sv_degeneration 0");
 		}
 		
+		// Force double ammo off, we use our own ammo system
+		if(GetCVar("sv_doubleammo"))
+		{
+			ConsoleCommand("sv_doubleammo 0");
+		}
+		
 		for(int i = 0; i < 64; i++)
 		{
 			if(playerLoggedIn[i])
@@ -1921,7 +1927,7 @@ function str getAmmoNameWeaponUses(int id) {
 	return "Unknown";
 }
 
-SCRIPT "Give Weapon Ammo" (int weaponId, int amount, int set)
+SCRIPT "Give Weapon Ammo" (int weaponId, int amount)
 {
 	int currentAmmo = CheckInventory(getAmmoNameWeaponUses(weaponId));
 	int ammoToGive = currentAmmo + amount;
