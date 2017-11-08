@@ -89,7 +89,7 @@ ACTOR GrenadeLE : CustomInventory 25019
 }
 
 // Dropped Grenade Launcher
-ACTOR DGrenadeLE : GrenadeLE
+ACTOR DGrenadeLEE : GrenadeLE
 {
 	States
 	{
