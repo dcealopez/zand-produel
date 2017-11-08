@@ -120,20 +120,14 @@ object HealthBonus5
 // Green / Blue Givers
 object GreenGiver
 {
-    frame ARM1A { light GREENARMOR1 }
-    frame ARM1B { light GREENARMOR2 }
+    frame ARM3A { light YELLOWARMOR1 }
+    frame ARM3B { light YELLOWARMOR2 }
 }
 
 object BlueGiver
 {
-    frame ARM2C { light BLUEARMOR1 }
-    frame ARM2D { light BLUEARMOR2 }
-}
-
-object BlueArmorS
-{
-    frame ARM2C { light BLUEARMOR1 }
-    frame ARM2D { light BLUEARMOR2 }
+    frame ARM3A { light YELLOWARMOR1 }
+    frame ARM3B { light YELLOWARMOR2 }
 }
 
 // YellowArmor
@@ -149,16 +143,10 @@ pointlight YELLOWARMOR2
     size 32
 }
 
-object YellowArmor
-{
-    frame ARM3A { light YELLOWARMOR1 }
-    frame ARM3B { light YELLOWARMOR2 }
-}
-
 object YellowGiver
 {
-    frame ARM3A { light YELLOWARMOR1 }
-    frame ARM3B { light YELLOWARMOR2 }
+    frame ARM4A { light REDARMOR1 }
+	frame ARM4B { light REDARMOR2 }
 }
 
 // RedArmor
@@ -172,12 +160,6 @@ pointlight REDARMOR2
 {
     color 0.6 0.0 0.0
     size 32
-}
-
-object RedArmor
-{
-    frame ARM4A { light REDARMOR1 }
-	frame ARM4B { light REDARMOR2 }
 }
 
 object RedGiver
