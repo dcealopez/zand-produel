@@ -75,8 +75,15 @@ ACTOR PChaingun : CustomInventory Replaces Chaingun
 			TNT1 A 0
 			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
 			MGUN A 10
+			Loop			
+		Rotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("End_Rotate")
+			RTCG A 3 A_SetAngle(angle + 22.5)
 			Loop
-			
+		NoRotate:
+			TNT1 A 0 ACS_NamedExecuteAlways("Begin_Rotate")
+			MGUN A 3
+			Loop			
 		Pickup:
 			TNT1 A 0
 			TNT1 A 0 A_JumpIfInventory("ChaingunE", 1, "Repickup")
