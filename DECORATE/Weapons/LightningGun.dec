@@ -55,7 +55,7 @@ ACTOR LGunEE : DoomWeapon
 		Hold:
 			TNT1 A 0 ACS_NamedExecuteAlways("Register Weapon Shot", 0, 7)
 			LGUN B 1 Bright A_Light1
-			LGUN C 1 Bright A_RailAttack(9, 0, 1, None, "White", RGF_SILENT | RGF_NOPIERCING | RGF_FULLBRIGHT, 0, "LGPuff", 0, 0, 608, 1, 50, 1.0, "LGTRAILEFFECT")
+			LGUN C 1 Bright A_RailAttack(8, 0, 1, None, "White", RGF_SILENT | RGF_NOPIERCING | RGF_FULLBRIGHT, 0, "LGPuff", 0, 0, 608, 1, 50, 1.0, "LGTRAILEFFECT")
 			LGUN C 1 Bright A_ReFire
 			LGUN D 3 A_GunFlash
 			LGUN B 0 A_StopSound(6)
